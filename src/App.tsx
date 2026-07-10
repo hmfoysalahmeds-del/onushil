@@ -215,6 +215,7 @@ export default function App() {
           <QuizScreen
             questions={currentQuestions}
             onExamSubmit={handleExamSubmit}
+            onBack={() => setScreen('dashboard')}
           />
         )}
 
@@ -223,6 +224,7 @@ export default function App() {
             questions={currentQuestions}
             answers={userAnswers}
             onRestart={() => setScreen('dashboard')}
+            onBack={() => setScreen('dashboard')}
           />
         )}
       </main>

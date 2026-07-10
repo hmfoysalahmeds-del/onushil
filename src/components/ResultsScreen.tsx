@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
+  ArrowLeft,
   Check, 
   X, 
   ChevronDown, 
@@ -21,6 +22,7 @@ interface ResultsScreenProps {
   questions: Question[];
   answers: Record<number, number>;
   onRestart: () => void;
+  onBack?: () => void;
 }
 
 // Accordion Component for Solution and Explanation
@@ -169,6 +171,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   questions,
   answers,
   onRestart,
+  onBack,
 }) => {
   let correct = 0;
   let wrong = 0;
@@ -222,6 +225,19 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
   return (
     <div className="space-y-8 py-4">
+      {/* Back Button */}
+      {onBack && (
+        <div className="flex items-center justify-start -mb-4">
+          <button
+            onClick={onBack}
+            className="text-slate-500 hover:text-teal-700 flex items-center gap-1.5 font-bold text-sm transition-colors cursor-pointer group"
+          >
+            <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-0.5" />
+            <span>ফিরে যান</span>
+          </button>
+        </div>
+      )}
+
       {/* Dynamic Celebration Hero banner */}
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}

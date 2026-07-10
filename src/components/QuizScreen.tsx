@@ -1,14 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Clock, CheckSquare, Award, ArrowRight, HelpCircle, Flag } from 'lucide-react';
+import { ArrowLeft, Clock, CheckSquare, Award, ArrowRight, HelpCircle, Flag } from 'lucide-react';
 import { Question } from '../types';
 
 interface QuizScreenProps {
   questions: Question[];
   onExamSubmit: (answers: Record<number, number>) => void;
+  onBack?: () => void;
 }
 
-export const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onExamSubmit }) => {
+export const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onExamSubmit, onBack }) => {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [flagged, setFlagged] = useState<Record<number, boolean>>({});
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
@@ -83,6 +84,23 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onExamSubmit 
 
   return (
     <div className="relative pb-24">
+      {/* Back Button */}
+      {onBack && (
+        <div className="flex items-center justify-start mb-4">
+          <button
+            onClick={() => {
+              if (window.confirm("আপনি কি পরীক্ষাটি বাতিল করতে চান?")) {
+                onBack();
+              }
+            }}
+            className="text-slate-500 hover:text-teal-700 flex items-center gap-1.5 font-bold text-sm transition-colors cursor-pointer group"
+          >
+            <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-0.5" />
+            <span>ফিরে যান</span>
+          </button>
+        </div>
+      )}
+
       {/* Sticky Top Status Bar */}
       <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-md py-4 px-4 sm:px-6 -mx-4 sm:-mx-6 lg:-mx-8 mb-8 transition-all">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
