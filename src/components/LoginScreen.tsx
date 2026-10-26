@@ -18,12 +18,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       const user = await signInWithGoogle();
       onLoginSuccess(user);
     } catch (err: any) {
-      console.error('Google Sign-In Error:', err);
-      if (err.code === 'auth/popup-closed-by-user') {
-        setError('Google Sign-In popup was closed before completing. Please try again.');
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        console.warn('Google Sign-In popup was closed by user.');
+        setError('Sign-in was cancelled. Click "Continue with Google" whenever you are ready.');
       } else if (err.code === 'auth/popup-blocked') {
-        setError('Popup was blocked by your browser. Please allow popups for this site and try again.');
+        console.warn('Popup was blocked by the browser.');
+        setError('Sign-in popup was blocked by your browser. Please allow popups for this site and try again.');
       } else {
+        console.error('Google Sign-In Error:', err);
         setError(err.message || 'Failed to sign in with Google. Please try again.');
       }
     } finally {

@@ -258,23 +258,55 @@ export async function saveExamResultToFirestore(
 /**
  * Fetch all eligible leaderboard entries
  */
-export async function fetchLeaderboardEntries(testType: 'verbal' | 'non-verbal'): Promise<LeaderboardEntry[]> {
+export async function fetchLeaderboardEntries(
+  testType: 'verbal' | 'non-verbal',
+  currentUid?: string
+): Promise<LeaderboardEntry[]> {
   const path = 'leaderboard';
   try {
     const col = collection(db, path);
-    const q = query(col, where('testType', '==', testType));
-    const snap = await getDocs(q);
-    const entries: LeaderboardEntry[] = [];
+    // Explicitly query for non-hidden entries to strictly satisfy security rules
+    const qPublic = query(
+      col, 
+      where('testType', '==', testType), 
+      where('hidden', '==', false)
+    );
+    const snap = await getDocs(qPublic);
+    const map = new Map<string, LeaderboardEntry>();
     snap.forEach((d) => {
       const data = d.data() as LeaderboardEntry;
-      entries.push({
+      map.set(d.id, {
         ...data,
         id: d.id,
       });
     });
-    return entries;
+
+    // If candidate is logged in, also fetch candidate's own entries in case they opted to be hidden
+    // so their private ranking can still be computed in "Your rank"
+    if (currentUid) {
+      try {
+        const qMine = query(
+          col, 
+          where('testType', '==', testType), 
+          where('uid', '==', currentUid)
+        );
+        const snapMine = await getDocs(qMine);
+        snapMine.forEach((d) => {
+          const data = d.data() as LeaderboardEntry;
+          map.set(d.id, {
+            ...data,
+            id: d.id,
+          });
+        });
+      } catch {
+        // Safe fallback if user query fails or has no entries
+      }
+    }
+
+    return Array.from(map.values());
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, path);
     return [];
   }
 }
+

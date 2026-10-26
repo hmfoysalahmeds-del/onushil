@@ -59,7 +59,8 @@ service cloud.firestore {
              data.timeTaken is number && data.timeTaken > 0 && data.timeTaken <= 7200 &&
              data.hidden is bool &&
              (!('photo' in data) || (data.photo is string && data.photo.size() <= 1000)) &&
-             (!('setName' in data) || (data.setName is string && data.setName.size() <= 50));
+             (!('setName' in data) || (data.setName is string && data.setName.size() <= 50)) &&
+             (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 60));
     }
 
     // User profile document
@@ -96,7 +97,7 @@ service cloud.firestore {
 
     // Public / Protected Leaderboard collection
     match /leaderboard/{entryId} {
-      allow get, list: if isSignedIn() && (resource.data.hidden == false || resource.data.uid == request.auth.uid);
+      allow get, list: if resource.data.hidden == false || (isSignedIn() && resource.data.uid == request.auth.uid);
 
       allow create: if isSignedIn() &&
                        isNotBlocked(request.auth.uid) &&

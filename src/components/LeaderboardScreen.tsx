@@ -41,10 +41,10 @@ export const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
     else setLoading(true);
 
     try {
-      const data = await fetchLeaderboardEntries(testType);
+      const data = await fetchLeaderboardEntries(testType, userProfile?.uid);
       setEntries(data);
     } catch (err) {
-      console.error('Failed to load leaderboard data:', err);
+      console.warn('Failed to load leaderboard data:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -53,7 +53,7 @@ export const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
 
   useEffect(() => {
     loadData();
-  }, [testType]);
+  }, [testType, userProfile?.uid]);
 
   // Compute Period threshold
   const periodFilteredEntries = useMemo(() => {

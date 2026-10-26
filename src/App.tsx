@@ -37,8 +37,8 @@ export default function App() {
   const calculateBestRank = async (uid: string) => {
     try {
       const [verbalEntries, nonVerbalEntries] = await Promise.all([
-        fetchLeaderboardEntries('verbal'),
-        fetchLeaderboardEntries('non-verbal'),
+        fetchLeaderboardEntries('verbal', uid),
+        fetchLeaderboardEntries('non-verbal', uid),
       ]);
 
       const getRankForEntries = (entries: typeof verbalEntries) => {
