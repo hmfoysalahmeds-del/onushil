@@ -1,429 +1,452 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  ArrowLeft,
+  ArrowLeft, 
   Check, 
   X, 
   ChevronDown, 
   ChevronUp, 
-  Award, 
   RotateCcw, 
-  ThumbsUp, 
-  BookOpen, 
-  TrendingUp, 
+  Trophy, 
+  Clock, 
+  Award, 
+  Shield, 
+  Zap, 
+  Target, 
   CheckCircle2, 
-  XCircle, 
-  MinusCircle, 
-  Info 
+  XCircle,
+  HelpCircle,
+  BarChart2,
+  Filter,
+  Sparkles
 } from 'lucide-react';
 import { Question } from '../types';
 
 interface ResultsScreenProps {
   questions: Question[];
   answers: Record<number, number>;
+  timeTakenSeconds?: number;
   onRestart: () => void;
   onBack?: () => void;
 }
 
-// Accordion Component for Solution and Explanation
-const QuestionReviewCard: React.FC<{
-  q: Question;
-  qIdx: number;
-  userAnswer: number | undefined;
-}> = ({ q, qIdx, userAnswer }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const isCorrect = userAnswer === q.correctAnswerIndex;
-  const isUnanswered = userAnswer === undefined;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className={`bg-white rounded-2xl p-5 sm:p-6 border shadow-sm transition-all duration-200 ${
-        isCorrect 
-          ? 'border-emerald-300 bg-emerald-50/10' 
-          : isUnanswered 
-            ? 'border-slate-200 bg-white' 
-            : 'border-red-200 bg-rose-50/10'
-      }`}
-    >
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div className="flex items-center gap-2">
-          <span className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${
-            isCorrect 
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
-              : isUnanswered 
-                ? 'bg-slate-50 text-slate-500 border-slate-200' 
-                : 'bg-red-50 text-red-800 border-red-200'
-          }`}>
-            প্রশ্ন {qIdx + 1}
-          </span>
-          <span className="text-slate-400 text-xs font-semibold">
-            {q.chapter.split(':')[0]}
-          </span>
-        </div>
-
-        <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-          isCorrect 
-            ? 'bg-emerald-55 text-emerald-700' 
-            : isUnanswered 
-              ? 'bg-amber-50 text-amber-600' 
-              : 'bg-red-50 text-red-600'
-        }`}>
-          {isCorrect ? 'সঠিক উত্তর' : isUnanswered ? 'উত্তর করা হয়নি' : 'ভুল উত্তর'}
-        </span>
-      </div>
-
-      <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-6 leading-relaxed">
-        {q.question}
-      </h3>
-
-      {/* Options Listing with precise borders */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-        {q.options.map((opt, oIdx) => {
-          const isCurrentCorrect = oIdx === q.correctAnswerIndex;
-          const isUserSelection = userAnswer === oIdx;
-
-          let optionStyle = 'border-slate-200 bg-slate-50/40 text-slate-700';
-          let icon = null;
-
-          if (isCurrentCorrect) {
-            // Correct answer: green border/background, check icon
-            optionStyle = 'border-emerald-500 bg-emerald-50/80 text-emerald-950 font-bold';
-            icon = (
-              <span className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-sm">
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-              </span>
-            );
-          } else if (isUserSelection && !isCorrect) {
-            // Wrong user selection: red border/background, X icon
-            optionStyle = 'border-[#f43f5e] bg-red-50/80 text-red-950 font-semibold';
-            icon = (
-              <span className="w-6 h-6 rounded-full bg-[#f43f5e] text-white flex items-center justify-center shadow-sm">
-                <X className="w-3.5 h-3.5 stroke-[3]" />
-              </span>
-            );
-          }
-
-          return (
-            <div
-              key={oIdx}
-              className={`p-3.5 rounded-xl border-2 flex items-center justify-between gap-3 text-sm sm:text-base transition duration-150 ${optionStyle}`}
-            >
-              <div className="flex items-center gap-3">
-                <span className={`w-7 h-7 rounded-full border flex items-center justify-center text-xs font-bold ${
-                  isCurrentCorrect 
-                    ? 'bg-emerald-600 border-emerald-600 text-white' 
-                    : isUserSelection 
-                      ? 'bg-[#f43f5e] border-[#f43f5e] text-white' 
-                      : 'bg-white border-slate-200 text-slate-400'
-                }`}>
-                  {String.fromCharCode(0x995 + oIdx)}
-                </span>
-                <span className="font-semibold">{opt}</span>
-              </div>
-              {icon}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Accordion Block: Show Answer and Solution */}
-      <div className="border border-slate-200 rounded-xl overflow-hidden mt-4 shadow-sm">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full bg-slate-100 hover:bg-slate-150 px-4 py-2.5 text-xs font-black uppercase text-slate-500 tracking-widest flex justify-between items-center transition cursor-pointer"
-        >
-          <span>Show Answer and Solution</span>
-          <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-        </button>
-
-        <AnimatePresence initial={false}>
-          {isOpen && (
-            <motion.div
-              initial={{ height: 0 }}
-              animate={{ height: 'auto' }}
-              exit={{ height: 0 }}
-              transition={{ duration: 0.2, ease: 'easeInOut' }}
-              className="overflow-hidden bg-white text-sm border-t border-slate-200"
-            >
-              <div className="p-4 space-y-3">
-                <div>
-                  <strong className="text-[#0d9488] font-bold uppercase text-[10px] tracking-wider block mb-1">Answer:</strong>
-                  <span className="text-slate-800 font-bold">{q.options[q.correctAnswerIndex]}</span>
-                </div>
-                <div className="h-px bg-slate-150"></div>
-                <div>
-                  <strong className="text-[#0d9488] font-bold uppercase text-[10px] tracking-wider block mb-1">Explanation:</strong>
-                  <span className="text-slate-600 font-medium leading-relaxed">{q.explanation}</span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
-  );
-};
-
 export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   questions,
   answers,
+  timeTakenSeconds = 1800,
   onRestart,
   onBack,
 }) => {
+  const [filter, setFilter] = useState<'all' | 'wrong' | 'unanswered' | 'correct'>('all');
+  const [openExplanations, setOpenExplanations] = useState<Record<number, boolean>>({});
+
+  // Calculations
   let correct = 0;
   let wrong = 0;
   let unanswered = 0;
 
+  const topicStats: Record<string, { correct: number; total: number }> = {};
+
   questions.forEach((q, idx) => {
+    // Topic aggregation
+    if (!topicStats[q.topic]) {
+      topicStats[q.topic] = { correct: 0, total: 0 };
+    }
+    topicStats[q.topic].total += 1;
+
     const userAns = answers[idx];
     if (userAns === undefined) {
       unanswered++;
     } else if (userAns === q.correctAnswerIndex) {
       correct++;
+      topicStats[q.topic].correct += 1;
     } else {
       wrong++;
     }
   });
 
-  // Calculate Marks
   const correctMarks = correct * 1.0;
   const negativeMarks = wrong * 0.25;
-  const obtainedMarks = Math.max(0, correctMarks - negativeMarks);
-  const highestMarks = 25.0;
+  const netScore = Math.max(0, correctMarks - negativeMarks);
+  const percentage = Math.round((correct / questions.length) * 100);
 
-  // Position calculations (Simulated peer metrics)
-  let position = 1;
-  let peerCount = 150;
-  let performanceTitle = 'মেধাতালিকায় চমৎকার অবস্থান';
-  let performanceDesc = 'আপনি সমস্ত প্রশ্নের উত্তর দিয়ে দারুণ মেধার পরিচয় দিয়েছেন!';
-  let ratingPercent = 99;
+  // ISSB-style Grading logic (percentage-based so it works seamlessly for 50 or 100 questions)
+  let gradeBadge = {
+    title: 'Not Recommended',
+    color: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+    headerBg: 'from-rose-950 via-slate-900 to-slate-900',
+    description: 'Drastic speed and logic improvement needed to pass ISSB preliminary intelligence screening.'
+  };
 
-  if (obtainedMarks >= 20) {
-    position = Math.floor(Math.random() * 3) + 1; // 1 to 3
-    ratingPercent = 98;
-    performanceTitle = 'অসাধারণ পারফরম্যান্স!';
-    performanceDesc = 'আপনার আইসিটি প্রিপারেশন অত্যন্ত মজবুত। বোর্ড পরীক্ষায় এ প্লাস নিশ্চিত!';
-  } else if (obtainedMarks >= 15) {
-    position = Math.floor(Math.random() * 8) + 4; // 4 to 11
-    ratingPercent = 91;
-    performanceTitle = 'দারুণ প্রিপারেশন!';
-    performanceDesc = 'সামান্য কিছু ভুলের কারণে অল্প মার্ক কাটা গেছে। নিয়মিত অনুশীলনে এটিও কাটিয়ে ওঠা সম্ভব।';
-  } else if (obtainedMarks >= 10) {
-    position = Math.floor(Math.random() * 20) + 12; // 12 to 31
-    ratingPercent = 78;
-    performanceTitle = 'সন্তোষজনক ফলাফল';
-    performanceDesc = 'আপনার প্রস্তুতি বেশ ভালো, তবে কঠিন প্রশ্নগুলোতে আরেকটু দক্ষতা বাড়ানো দরকার।';
-  } else {
-    position = Math.floor(Math.random() * 40) + 32; // 32 to 71
-    ratingPercent = 54;
-    performanceTitle = 'আরও অনুশীলন প্রয়োজন';
-    performanceDesc = 'ভয় পাওয়ার কিছু নেই! ভুলগুলো সমাধান দেখে শিখে নিন এবং পুনরায় অনুশীলনে বসুন।';
+  if (percentage >= 75) {
+    gradeBadge = {
+      title: 'Outstanding',
+      color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+      headerBg: 'from-emerald-950 via-slate-900 to-slate-900',
+      description: 'Exceptional intellectual reflex! You possess the quick decision-making and pattern recognition of top cadet material.'
+    };
+  } else if (percentage >= 60) {
+    gradeBadge = {
+      title: 'Recommended Candidate',
+      color: 'bg-teal-500/20 text-teal-300 border-teal-500/40',
+      headerBg: 'from-teal-950 via-slate-900 to-slate-900',
+      description: 'Solid performance clearing the ISSB-style cutoff benchmark. Ready for psychologist and obstacle phases.'
+    };
+  } else if (percentage >= 45) {
+    gradeBadge = {
+      title: 'Marginal / Borderline',
+      color: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+      headerBg: 'from-amber-950 via-slate-900 to-slate-900',
+      description: 'Close to passing. Hone your speed on non-verbal matrices and number series to cross the benchmark mark safely.'
+    };
   }
 
+  // Pace formatting
+  const avgSecondsPerItem = answers && Object.keys(answers).length > 0 
+    ? (timeTakenSeconds / Object.keys(answers).length).toFixed(1)
+    : '0';
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}m ${s}s`;
+  };
+
+  const toggleExplanation = (idx: number) => {
+    setOpenExplanations(prev => ({
+      ...prev,
+      [idx]: !prev[idx]
+    }));
+  };
+
+  // Filtered review list
+  const filteredQuestions = questions.map((q, idx) => ({ q, idx })).filter(({ q, idx }) => {
+    const userAns = answers[idx];
+    if (filter === 'wrong') return userAns !== undefined && userAns !== q.correctAnswerIndex;
+    if (filter === 'unanswered') return userAns === undefined;
+    if (filter === 'correct') return userAns === q.correctAnswerIndex;
+    return true;
+  });
+
   return (
-    <div className="space-y-8 py-4">
-      {/* Back Button */}
+    <div className="space-y-8 py-4 text-slate-100">
+      {/* Top back button: Subtle 'Back' button in top-left corner */}
       {onBack && (
-        <div className="flex items-center justify-start -mb-4">
+        <div className="flex items-center justify-start -mb-2">
           <button
             onClick={onBack}
-            className="text-slate-500 hover:text-teal-700 flex items-center gap-1.5 font-bold text-sm transition-colors cursor-pointer group"
+            className="text-slate-400 hover:text-emerald-400 flex items-center font-semibold text-xs sm:text-sm transition-colors cursor-pointer py-1.5 px-3 rounded-xl hover:bg-slate-900 border border-slate-800"
           >
-            <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-0.5" />
+            <ArrowLeft className="w-4 h-4 mr-1 text-slate-400" />
             <span>ফিরে যান</span>
           </button>
         </div>
       )}
 
-      {/* Dynamic Celebration Hero banner */}
+      {/* 1. CELEBRATION & ISSB STANDING HERO BANNER */}
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
+        initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md text-center relative overflow-hidden"
+        className={`bg-gradient-to-br ${gradeBadge.headerBg} rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-2xl relative overflow-hidden`}
       >
-        <div className="absolute top-0 right-0 translate-x-12 -translate-y-12 w-48 h-48 bg-teal-50/40 rounded-full blur-3xl -z-10 opacity-60"></div>
-        <div className="absolute bottom-0 left-0 -translate-x-12 translate-y-12 w-48 h-48 bg-emerald-50/40 rounded-full blur-3xl -z-10 opacity-50"></div>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+          
+          <div className="space-y-3 text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-xs font-black uppercase tracking-wider text-slate-300">
+              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <span>ISSB-style Evaluation Report</span>
+            </div>
 
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 80, delay: 0.1 }}
-          className="w-20 h-20 bg-teal-50 text-[#0d9488] border border-teal-100 rounded-3xl flex items-center justify-center mx-auto mb-5 shadow-md"
-        >
-          <Award className="w-10 h-10" />
-        </motion.div>
+            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              Assessment: <span className="text-emerald-400">{gradeBadge.title}</span>
+            </h1>
 
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-tight">
-          অনুশীলনী সম্পন্ন হয়েছে!
-        </h1>
-        <p className="text-[#0d9488] font-bold text-sm sm:text-base mt-1.5 flex items-center justify-center gap-1">
-          <ThumbsUp className="w-4 h-4 text-amber-500" />
-          {performanceTitle}
-        </p>
-        <p className="text-slate-500 text-sm max-w-xl mx-auto mt-2 leading-relaxed">
-          {performanceDesc}
-        </p>
+            <p className="text-slate-300 text-sm sm:text-base max-w-xl leading-relaxed">
+              {gradeBadge.description}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2 text-xs font-bold text-slate-400">
+              <span className="flex items-center gap-1 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800 text-slate-200">
+                <Clock className="w-3.5 h-3.5 text-amber-400" /> Time: {formatTime(timeTakenSeconds)}
+              </span>
+              <span className="flex items-center gap-1 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800 text-slate-200">
+                <Zap className="w-3.5 h-3.5 text-emerald-400" /> Pace: {avgSecondsPerItem}s / item
+              </span>
+            </div>
+          </div>
+
+          {/* Primary Score Ring */}
+          <div className="flex flex-col items-center justify-center p-6 bg-slate-950/80 rounded-3xl border border-slate-800 text-center min-w-[200px] shadow-inner">
+            <span className="text-xs uppercase font-black text-slate-400 tracking-widest mb-1">Raw Score</span>
+            <div className="text-5xl sm:text-6xl font-black font-mono text-emerald-400 tracking-tight">
+              {correct}
+            </div>
+            <span className="text-xs font-bold text-slate-400 mt-1">out of {questions.length} questions</span>
+            <div className="mt-3 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              {percentage}% Accuracy
+            </div>
+          </div>
+
+        </div>
+
+        {/* 4 Key Metrics Bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-800/80">
+          <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-left">
+            <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold mb-1">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Correct Answers</span>
+            </div>
+            <span className="text-2xl font-black text-white font-mono">{correct}</span>
+            <span className="block text-[11px] text-slate-400 mt-0.5">+1.0 per item</span>
+          </div>
+
+          <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-left">
+            <div className="flex items-center gap-1.5 text-rose-400 text-xs font-bold mb-1">
+              <XCircle className="w-4 h-4" />
+              <span>Wrong Answers</span>
+            </div>
+            <span className="text-2xl font-black text-white font-mono">{wrong}</span>
+            <span className="block text-[11px] text-rose-400 mt-0.5">-{negativeMarks.toFixed(2)} penalty</span>
+          </div>
+
+          <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-left">
+            <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold mb-1">
+              <HelpCircle className="w-4 h-4" />
+              <span>Skipped</span>
+            </div>
+            <span className="text-2xl font-black text-white font-mono">{unanswered}</span>
+            <span className="block text-[11px] text-slate-400 mt-0.5">0.0 penalty</span>
+          </div>
+
+          <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-left">
+            <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
+              <Award className="w-4 h-4" />
+              <span>Net Marks</span>
+            </div>
+            <span className="text-2xl font-black text-amber-400 font-mono">{netScore.toFixed(2)}</span>
+            <span className="block text-[11px] text-slate-400 mt-0.5">Standard Score</span>
+          </div>
+        </div>
       </motion.div>
 
-      {/* Specific 3-Column Statistics Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Column 1: Your Answer */}
-        <motion.div
-          initial={{ opacity: 0, x: -15 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5"
-        >
-          <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-5 bg-[#0d9488] rounded-full"></div>
-              <h3 className="font-extrabold text-slate-800 text-sm sm:text-base uppercase tracking-tight">Your Answer</h3>
-            </div>
-            <span className="text-[10px] bg-slate-100 text-slate-500 font-extrabold px-2 py-0.5 rounded-md">পরিসংখ্যান</span>
+      {/* 2. CATEGORY BREAKDOWN TABLE */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-left space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <BarChart2 className="w-5 h-5 text-emerald-400" />
+            <h3 className="text-base font-black text-white">Performance by IQ Category</h3>
           </div>
+          <span className="text-xs text-slate-400 font-semibold">Identifies strengths & drill priorities</span>
+        </div>
 
-          <div className="space-y-3.5">
-            <div className="flex justify-between items-center text-sm font-semibold text-slate-600">
-              <span className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-slate-400" />
-                Total Questions:
-              </span>
-              <span className="font-bold text-slate-800 text-base">{questions.length}</span>
-            </div>
-
-            <div className="flex justify-between items-center text-sm font-semibold text-slate-600">
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                Correct Answers:
-              </span>
-              <span className="font-bold text-emerald-600 text-base bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-100">{correct}</span>
-            </div>
-
-            <div className="flex justify-between items-center text-sm font-semibold text-slate-600">
-              <span className="flex items-center gap-2">
-                <XCircle className="w-4 h-4 text-red-500" />
-                Wrong Answers:
-              </span>
-              <span className="font-bold text-red-500 text-base bg-red-50 px-2.5 py-0.5 rounded-lg border border-red-100">{wrong}</span>
-            </div>
-
-            <div className="flex justify-between items-center text-sm font-semibold text-slate-600">
-              <span className="flex items-center gap-2">
-                <MinusCircle className="w-4 h-4 text-amber-500" />
-                Unanswered:
-              </span>
-              <span className="font-bold text-amber-600 text-base bg-amber-50 px-2.5 py-0.5 rounded-lg border border-amber-100">{unanswered}</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Column 2: Your Marks */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5"
-        >
-          <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-5 bg-[#0d9488] rounded-full"></div>
-              <h3 className="font-extrabold text-slate-800 text-sm sm:text-base uppercase tracking-tight">Your Marks</h3>
-            </div>
-            <span className="text-[10px] bg-emerald-50 text-emerald-600 font-extrabold px-2 py-0.5 rounded-md">মার্ক শিট</span>
-          </div>
-
-          <div className="space-y-3.5">
-            <div className="flex justify-between items-center text-sm font-semibold text-slate-600">
-              <span>Correct Marks:</span>
-              <span className="font-bold text-slate-800 font-mono">+{correctMarks.toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between items-center text-sm font-semibold text-slate-600">
-              <span>Negative Marks (০.২৫):</span>
-              <span className="font-bold text-[#f43f5e] font-mono">-{negativeMarks.toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between items-center text-sm font-semibold text-slate-600 pt-2 border-t border-slate-200">
-              <span className="font-bold text-slate-800">Obtained Score:</span>
-              <span className="font-black text-xl text-[#0d9488] font-mono">{obtainedMarks.toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between items-center text-sm font-semibold text-slate-600">
-              <span>Highest Score:</span>
-              <span className="font-bold text-slate-400 font-mono">{highestMarks.toFixed(2)}</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Column 3: Your Position */}
-        <motion.div
-          initial={{ opacity: 0, x: 15 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between"
-        >
-          <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-5 bg-[#0d9488] rounded-full"></div>
-              <h3 className="font-extrabold text-slate-800 text-sm sm:text-base uppercase tracking-tight">Your Position</h3>
-            </div>
-            <span className="text-[10px] bg-blue-50 text-blue-600 font-extrabold px-2 py-0.5 rounded-md">মেধাতালিকা</span>
-          </div>
-
-          <div className="flex flex-col items-center justify-center py-4 flex-1">
-            <motion.div
-              initial={{ scale: 0.7, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.5, type: 'spring', stiffness: 120 }}
-              className="text-4xl sm:text-5xl font-black text-[#0d9488] tracking-tight font-mono"
-            >
-              #{position}
-            </motion.div>
-            <span className="text-[11px] text-slate-400 font-bold uppercase mt-1 tracking-wider">
-              {peerCount} জন পরীক্ষার্থীর মধ্যে
-            </span>
-          </div>
-
-          <div className="bg-slate-50/80 p-3 rounded-2xl border border-slate-150 flex items-center gap-2.5 mt-auto">
-            <TrendingUp className="w-5 h-5 text-[#0d9488] flex-shrink-0 animate-pulse" />
-            <p className="text-xs text-slate-500 leading-snug font-semibold">
-              আপনি পরীক্ষায় অংশ নেওয়া প্রায় <strong className="text-[#0d9488] font-extrabold">{ratingPercent}%</strong> শিক্ষার্থীর চেয়ে এগিয়ে আছেন!
-            </p>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Review Section */}
-      <div className="space-y-6">
-        <h2 className="text-xl sm:text-2xl font-black text-slate-800 pt-4 border-b border-slate-200 pb-3">
-          উত্তরপত্র পর্যালোচনা ও ব্যাখ্যাসমূহ
-        </h2>
-
-        <div className="space-y-5">
-          {questions.map((q, idx) => (
-            <QuestionReviewCard
-              key={q.id}
-              q={q}
-              qIdx={idx}
-              userAnswer={answers[idx]}
-            />
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {Object.entries(topicStats).map(([topic, stat]) => {
+            const topicPercent = Math.round((stat.correct / stat.total) * 100);
+            return (
+              <div key={topic} className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-bold text-white truncate max-w-[180px]">{topic}</span>
+                  <span className="font-mono font-bold text-emerald-400">{stat.correct}/{stat.total}</span>
+                </div>
+                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-emerald-400 h-full rounded-full"
+                    style={{ width: `${topicPercent}%` }}
+                  ></div>
+                </div>
+                <div className="text-[10px] text-slate-400 flex justify-between">
+                  <span>Accuracy</span>
+                  <span className="font-bold text-slate-300">{topicPercent}%</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Re-Exam Trigger Button */}
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={onRestart}
-        className="w-full bg-[#0d9488] hover:bg-[#0b7e74] text-white font-extrabold py-5 rounded-2xl shadow-xl shadow-teal-700/20 hover:shadow-teal-800/30 transition-all duration-200 flex items-center justify-center gap-2.5 text-lg cursor-pointer"
-      >
-        <RotateCcw className="w-5 h-5" />
-        পুনরায় পরীক্ষা দিন (নতুন প্রশ্নপত্র তৈরি করুন)
-      </motion.button>
+      {/* 3. QUESTION-BY-QUESTION REVIEW ACCORDION */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-left space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <h3 className="text-base font-black text-white">Detailed Solutions & Explanations</h3>
+            <p className="text-xs text-slate-400">Review step-by-step logic for every question tested.</p>
+          </div>
+
+          {/* Review Filter Buttons */}
+          <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-bold">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                filter === 'all' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              All ({questions.length})
+            </button>
+            <button
+              onClick={() => setFilter('wrong')}
+              className={`px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                filter === 'wrong' ? 'bg-rose-500/20 text-rose-300' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Incorrect ({wrong})
+            </button>
+            <button
+              onClick={() => setFilter('unanswered')}
+              className={`px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                filter === 'unanswered' ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Skipped ({unanswered})
+            </button>
+            <button
+              onClick={() => setFilter('correct')}
+              className={`px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                filter === 'correct' ? 'bg-emerald-500/20 text-emerald-300' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Correct ({correct})
+            </button>
+          </div>
+        </div>
+
+        {/* Question Cards List */}
+        <div className="space-y-4">
+          {filteredQuestions.map(({ q, idx }) => {
+            const userAns = answers[idx];
+            const isCorrect = userAns === q.correctAnswerIndex;
+            const isUnanswered = userAns === undefined;
+            const isOpen = openExplanations[idx] || false;
+
+            return (
+              <div 
+                key={q.id}
+                className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-sm hover:border-slate-700 transition-colors"
+              >
+                {/* Header Row */}
+                <div 
+                  onClick={() => toggleExplanation(idx)}
+                  className="p-5 flex items-start justify-between gap-4 cursor-pointer hover:bg-slate-900/50 transition-colors"
+                >
+                  <div className="space-y-2 flex-grow">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-black uppercase tracking-wider ${
+                        isCorrect
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          : isUnanswered
+                          ? 'bg-slate-800 text-slate-400 border border-slate-700'
+                          : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                      }`}>
+                        {isCorrect ? 'Correct' : isUnanswered ? 'Skipped' : 'Incorrect'}
+                      </span>
+                      <span className="text-xs font-bold text-slate-400">
+                        Question {idx + 1}
+                      </span>
+                      <span className="text-xs text-slate-500 font-semibold">• {q.topic}</span>
+                    </div>
+
+                    <h4 className="text-sm sm:text-base font-bold text-white leading-snug">
+                      {q.question}
+                    </h4>
+                  </div>
+
+                  <button className="p-1.5 rounded-lg text-slate-400 hover:text-white">
+                    {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </button>
+                </div>
+
+                {/* Details Accordion Content */}
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="border-t border-slate-800 px-5 pb-5 pt-3 space-y-4"
+                    >
+                      {/* Pattern Diagram Preview if available */}
+                      {q.imageUrl && (
+                        <div className="bg-white p-3 rounded-2xl border border-slate-700 flex flex-col items-center justify-center max-w-sm mx-auto shadow-md">
+                          <img 
+                            src={q.imageUrl} 
+                            alt={`Question ${idx + 1} pattern`}
+                            className="max-h-56 w-auto object-contain rounded-lg"
+                          />
+                        </div>
+                      )}
+
+                      {/* Options listing */}
+                      <div className={`grid gap-2 ${
+                        q.options.length > 5 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2'
+                      }`}>
+                        {q.options.map((opt, oIdx) => {
+                          const isOptionCorrect = oIdx === q.correctAnswerIndex;
+                          const isOptionChosen = userAns === oIdx;
+
+                          let optClass = "bg-slate-900 border-slate-800 text-slate-400";
+                          if (isOptionCorrect) {
+                            optClass = "bg-emerald-500/20 border-emerald-500 text-emerald-200 font-bold";
+                          } else if (isOptionChosen && !isOptionCorrect) {
+                            optClass = "bg-rose-500/20 border-rose-500 text-rose-200 font-bold";
+                          }
+
+                          const hasSvg = q.optionSvgs && q.optionSvgs[oIdx];
+
+                          return (
+                            <div key={oIdx} className={`p-3 rounded-xl border text-xs flex flex-col justify-between gap-2 ${optClass}`}>
+                              <div className="flex items-center justify-between gap-2">
+                                <span>{String.fromCharCode(65 + oIdx)}. {opt}</span>
+                                {isOptionCorrect && <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
+                                {isOptionChosen && !isOptionCorrect && <X className="w-4 h-4 text-rose-400 flex-shrink-0" />}
+                              </div>
+                              {hasSvg && (
+                                <div 
+                                  className="bg-slate-950/80 p-2 rounded-lg border border-slate-800 flex items-center justify-center self-center"
+                                  dangerouslySetInnerHTML={{ __html: q.optionSvgs![oIdx] }}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Explanation box */}
+                      <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Solution & Logic:</span>
+                        </div>
+                        <p className="text-slate-300 leading-relaxed">
+                          {q.explanation}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 4. FOOTER ACTIONS */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+        <button
+          onClick={onRestart}
+          className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black px-8 py-4 rounded-2xl shadow-xl shadow-emerald-950/60 transition-all flex items-center justify-center gap-2 text-base cursor-pointer"
+        >
+          <RotateCcw className="w-5 h-5" />
+          <span>Launch Fresh 100 IQ Test (Unlimited Generator)</span>
+        </button>
+
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-8 py-4 rounded-2xl border border-slate-700 transition-all text-base cursor-pointer"
+          >
+            <span>Back to Candidate Portal</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 };

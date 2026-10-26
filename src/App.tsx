@@ -5,29 +5,30 @@ import { LoginScreen } from './components/LoginScreen';
 import { DashboardScreen } from './components/DashboardScreen';
 import { QuizScreen } from './components/QuizScreen';
 import { ResultsScreen } from './components/ResultsScreen';
-import { questionPool } from './data/questions';
-import { Question, ExamHistory } from './types';
+import { generateISSBExam } from './data/questions';
+import { Question, ExamHistory, ExamMode } from './types';
 
 export default function App() {
   const [screen, setScreen] = useState<'landing' | 'login' | 'dashboard' | 'quiz' | 'results'>('landing');
   const [username, setUsername] = useState<string | null>(null);
   const [history, setHistory] = useState<ExamHistory[]>([]);
   
-  // Test specific states
+  // Current test state
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
-  const [testDifficultySelection, setTestDifficultySelection] = useState<'balanced' | 'easy' | 'hard'>('balanced');
-  const [testChapterSelection, setTestChapterSelection] = useState<string>('all');
+  const [examMode, setExamMode] = useState<ExamMode>('100-issb');
+  const [examDurationMinutes, setExamDurationMinutes] = useState<number>(30);
+  const [lastExamTimeSeconds, setLastExamTimeSeconds] = useState<number>(1800);
 
-  // Load username and exam history on mount
+  // Load candidate & history on mount
   useEffect(() => {
-    const cachedUser = localStorage.getItem('onushil_user');
+    const cachedUser = localStorage.getItem('b20issb_user');
     if (cachedUser) {
       setUsername(cachedUser);
       setScreen('dashboard');
     }
 
-    const cachedHistory = localStorage.getItem('onushil_history');
+    const cachedHistory = localStorage.getItem('b20issb_history');
     if (cachedHistory) {
       try {
         setHistory(JSON.parse(cachedHistory));
@@ -38,99 +39,51 @@ export default function App() {
   }, []);
 
   const handleLoginSuccess = (name: string) => {
-    localStorage.setItem('onushil_user', name);
+    localStorage.setItem('b20issb_user', name);
     setUsername(name);
     setScreen('dashboard');
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('onushil_user');
+    localStorage.removeItem('b20issb_user');
     setUsername(null);
     setScreen('landing');
   };
 
   const handleClearHistory = () => {
-    if (window.confirm('আপনি কি নিশ্চিতভাবে পরীক্ষার ইতিহাস মুছে ফেলতে চান?')) {
-      localStorage.removeItem('onushil_history');
+    if (window.confirm('Are you sure you want to clear your ISSB examination log?')) {
+      localStorage.removeItem('b20issb_history');
       setHistory([]);
     }
   };
 
-  // Dynamic Shuffling and Extraction Engine
-  const startExam = (difficultyMode: 'balanced' | 'easy' | 'hard', chapterFilter: string) => {
-    setTestDifficultySelection(difficultyMode);
-    setTestChapterSelection(chapterFilter);
+  // Launch fresh test from Unlimited Engine
+  const startExam = (mode: ExamMode = 'verbal-set-1', topicFilter?: string) => {
+    setExamMode(mode);
     setUserAnswers({});
 
-    // 1. Filter by chapter if requested
-    let pool = [...questionPool];
-    if (chapterFilter !== 'all') {
-      pool = pool.filter((q) => q.chapter.includes(chapterFilter));
+    let duration = 30; // 30 minutes for 100 questions
+    if (mode === 'non-verbal-50' || mode === 'non-verbal-set-1' || mode === 'non-verbal-38') {
+      duration = 26; // 26 minutes for non-verbal questions
+    } else if (mode === '50-sprint' || mode === 'sprint-50') {
+      duration = 15;
+    } else if (mode === 'topic-drill') {
+      duration = 10;
+    } else if (mode === 'rapid') {
+      duration = 15;
     }
 
-    // 2. Shuffle helper
-    const shuffle = <T,>(arr: T[]): T[] => {
-      return [...arr].sort(() => 0.5 - Math.random());
-    };
+    setExamDurationMinutes(duration);
 
-    // Split pool by difficulty
-    const lowPool = shuffle(pool.filter((q) => q.difficulty === 'low'));
-    const mediumPool = shuffle(pool.filter((q) => q.difficulty === 'medium'));
-    const hardPool = shuffle(pool.filter((q) => q.difficulty === 'hard'));
-
-    // Define target counts based on the mode
-    let targetLow = 10;
-    let targetMed = 10;
-    let targetHard = 5;
-
-    if (difficultyMode === 'easy') {
-      targetLow = 15;
-      targetMed = 10;
-      targetHard = 0;
-    } else if (difficultyMode === 'hard') {
-      targetLow = 5;
-      targetMed = 10;
-      targetHard = 10;
-    }
-
-    const selected: Question[] = [];
-
-    // Safe draw helper
-    const draw = (subPool: Question[], count: number) => {
-      const drawn = subPool.splice(0, count);
-      selected.push(...drawn);
-      return count - drawn.length; // Return slots remaining if pool was too small
-    };
-
-    // Draw from precise pools first
-    let remainingLow = draw(lowPool, targetLow);
-    let remainingMed = draw(mediumPool, targetMed);
-    let remainingHard = draw(hardPool, targetHard);
-
-    // If there's unfulfilled quota, fill using any leftovers from the filtered chapter pool
-    let totalRemaining = remainingLow + remainingMed + remainingHard;
-    if (totalRemaining > 0) {
-      const leftoverPool = [...lowPool, ...mediumPool, ...hardPool];
-      draw(shuffle(leftoverPool), totalRemaining);
-    }
-
-    // If the selected list is still less than 25 (e.g., chapter filter has fewer than 25 questions in total)
-    if (selected.length < 25) {
-      const fallbackPool = questionPool.filter(
-        (qp) => !selected.some((s) => s.id === qp.id)
-      );
-      const needed = 25 - selected.length;
-      draw(shuffle(fallbackPool), needed);
-    }
-
-    // Final shuffle to blend difficulties smoothly, slice exactly 25 questions
-    const finalSet = shuffle(selected).slice(0, 25);
-    setCurrentQuestions(finalSet);
+    // Call procedural & curated generator
+    const examQuestions = generateISSBExam(mode, topicFilter);
+    setCurrentQuestions(examQuestions);
     setScreen('quiz');
   };
 
-  const handleExamSubmit = (answers: Record<number, number>) => {
+  const handleExamSubmit = (answers: Record<number, number>, timeTakenSeconds: number) => {
     setUserAnswers(answers);
+    setLastExamTimeSeconds(timeTakenSeconds);
 
     // Compute Metrics
     let correct = 0;
@@ -152,7 +105,21 @@ export default function App() {
     const negativeMarks = wrong * 0.25;
     const obtainedMarks = Math.max(0, correctMarks - negativeMarks);
 
-    // Create history entry
+    // Determine ISSB Standing (Score and accuracy based)
+    const percentage = Math.round((correct / currentQuestions.length) * 100);
+    let issbStatus: ExamHistory['issbStatus'] = 'Not Recommended';
+    if (percentage >= 75) {
+      issbStatus = 'Outstanding';
+    } else if (percentage >= 60) {
+      issbStatus = 'Recommended';
+    } else if (percentage >= 45) {
+      issbStatus = 'Marginal / Borderline';
+    }
+
+    const speedPerQuestion = answers && Object.keys(answers).length > 0
+      ? Number((timeTakenSeconds / Object.keys(answers).length).toFixed(1))
+      : 0;
+
     const newHistoryEntry: ExamHistory = {
       id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
       date: new Date().toISOString(),
@@ -160,23 +127,24 @@ export default function App() {
       correctAnswers: correct,
       wrongAnswers: wrong,
       unanswered: unanswered,
-      timeTakenSeconds: 0, // Placeholder
+      timeTakenSeconds,
       totalQuestions: currentQuestions.length,
-      negativeMarks: negativeMarks,
-      obtainedMarks: obtainedMarks,
-      difficultySelection: testDifficultySelection,
-      chapterFilter: testChapterSelection,
-    } as any; // Cast in case of property additions
+      negativeMarks,
+      obtainedMarks,
+      mode: examMode,
+      issbStatus,
+      speedPerQuestion
+    };
 
     const updatedHistory = [newHistoryEntry, ...history];
     setHistory(updatedHistory);
-    localStorage.setItem('onushil_history', JSON.stringify(updatedHistory));
+    localStorage.setItem('b20issb_history', JSON.stringify(updatedHistory));
 
     setScreen('results');
   };
 
   return (
-    <div className="bg-[#e6f4f1]/30 min-h-screen font-sans antialiased text-slate-800 flex flex-col justify-between">
+    <div className="bg-slate-950 min-h-screen font-sans antialiased text-slate-100 flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
       <Navbar 
         username={username} 
         currentScreen={screen} 
@@ -184,7 +152,7 @@ export default function App() {
         onNavigate={(targetScreen) => setScreen(targetScreen)} 
       />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
         {screen === 'landing' && (
           <LandingPage 
             onStartPracticing={() => {
@@ -193,6 +161,9 @@ export default function App() {
               } else {
                 setScreen('login');
               }
+            }}
+            onStartNonVerbal={() => {
+              startExam('non-verbal-set-1');
             }}
             username={username}
           />
@@ -214,6 +185,7 @@ export default function App() {
         {screen === 'quiz' && (
           <QuizScreen
             questions={currentQuestions}
+            durationMinutes={examDurationMinutes}
             onExamSubmit={handleExamSubmit}
             onBack={() => setScreen('dashboard')}
           />
@@ -223,7 +195,8 @@ export default function App() {
           <ResultsScreen
             questions={currentQuestions}
             answers={userAnswers}
-            onRestart={() => setScreen('dashboard')}
+            timeTakenSeconds={lastExamTimeSeconds}
+            onRestart={() => startExam('100-issb', 'all')}
             onBack={() => setScreen('dashboard')}
           />
         )}

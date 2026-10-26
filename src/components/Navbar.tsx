@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, Play, LayoutDashboard } from 'lucide-react';
+import { LogOut, LayoutDashboard, Shield, Zap, Award, Compass } from 'lucide-react';
 
 interface NavbarProps {
   username: string | null;
@@ -10,64 +10,81 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ username, currentScreen, onLogout, onNavigate }) => {
   return (
-    <nav className="bg-[#0d9488] text-white shadow-md sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <nav className="bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-800 shadow-xl sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        
+        {/* Brand Logo & Name */}
         <div 
-          className="flex items-center gap-3 cursor-pointer select-none" 
+          className="flex items-center gap-3 cursor-pointer select-none group" 
           onClick={() => onNavigate('landing')}
         >
-          <div className="bg-white p-1 rounded-xl shadow-inner border border-teal-500/30">
-            <img 
-              src="https://nowzyplus.live/upload/ChatGPT%20Image%20Jul%2010%2C%202026%2C%2011_17_04%20PM.png" 
-              alt="Onushil Logo" 
-              className="w-8 h-8 rounded-lg object-contain"
-              referrerPolicy="no-referrer"
-            />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/20 border border-emerald-400/30 group-hover:scale-105 transition-transform">
+            <Shield className="w-5 h-5 text-white" />
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-2xl font-black tracking-tight leading-none">Onushil</span>
-            <span className="text-[10px] uppercase tracking-[0.15em] text-teal-100 font-bold">HSC প্রস্তুতি</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xl sm:text-2xl font-black tracking-tight leading-none text-white">
+                b20<span className="text-emerald-400">ISSB</span>
+              </span>
+              <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold px-1.5 py-0.5 rounded border border-emerald-500/30 uppercase tracking-wider hidden sm:inline-block">
+                IQ Portal
+              </span>
+            </div>
+            <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400 font-bold">
+              Unlimited IQ Practice
+            </span>
           </div>
         </div>
 
+        {/* Center Pill: 100 IQ / 30 Min Reminder */}
+        <div className="hidden md:flex items-center gap-2 bg-slate-800/80 px-3.5 py-1.5 rounded-full border border-slate-700/60 text-xs font-semibold text-slate-300 shadow-inner">
+          <Zap className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+          <span>ISSB-style simulation: <strong className="text-emerald-400">100 IQ</strong> in <strong className="text-amber-300">30 min</strong></span>
+        </div>
+
+        {/* Right Action Area */}
         <div className="flex items-center gap-3">
-          {/* If the user is on landing page and already has username */}
-          {username && currentScreen === 'landing' && (
+          {/* Candidate Dashboard Link */}
+          {username && currentScreen !== 'dashboard' && currentScreen !== 'quiz' && (
             <button
               onClick={() => onNavigate('dashboard')}
-              className="bg-white/10 hover:bg-white/20 text-white font-extrabold px-4 py-2 rounded-xl transition-all duration-200 cursor-pointer text-sm flex items-center gap-1.5 border border-white/20"
+              className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-3.5 py-2 rounded-xl transition-all duration-200 cursor-pointer text-xs sm:text-sm flex items-center gap-1.5 border border-slate-700 hover:border-emerald-500/50"
             >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>ড্যাশবোর্ড</span>
+              <LayoutDashboard className="w-4 h-4 text-emerald-400" />
+              <span>Portal</span>
             </button>
           )}
 
-          {/* If they are NOT logged in and on landing, show the requested Start CTA */}
+          {/* If NOT logged in and on landing, Start CTA */}
           {!username && currentScreen === 'landing' && (
             <button
               onClick={() => onNavigate('login')}
-              className="bg-white text-[#0d9488] hover:bg-teal-50 font-extrabold px-5 py-2.5 rounded-xl transition-all duration-200 cursor-pointer text-sm shadow-sm flex items-center gap-1.5"
+              className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold px-5 py-2 rounded-xl transition-all duration-200 cursor-pointer text-xs sm:text-sm shadow-md shadow-emerald-950/40 flex items-center gap-2"
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Start</span>
+              <Compass className="w-4 h-4" />
+              <span>Join Drill</span>
             </button>
           )}
 
+          {/* Logged in state */}
           {username && (
             <div className="flex items-center gap-3">
-              <div className="bg-teal-800/50 px-4 py-2 rounded-xl border border-teal-600/30 hidden sm:flex items-center gap-3 shadow-sm">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium tracking-wide">পরীক্ষার্থী: {username}</span>
+              <div className="bg-slate-800/90 px-3.5 py-1.5 rounded-xl border border-slate-700 hidden sm:flex items-center gap-2.5 shadow-sm">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-sm shadow-emerald-400"></div>
+                <div className="flex flex-col text-left">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Cadet</span>
+                  <span className="text-xs font-bold text-white tracking-wide truncate max-w-[120px]">{username}</span>
+                </div>
               </div>
               
               <button
                 onClick={onLogout}
-                className="p-2 text-teal-100 hover:text-white hover:bg-teal-800/60 rounded-xl transition-all duration-200 group relative cursor-pointer"
-                title="লগআউট করুন"
+                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 rounded-xl transition-all duration-200 group relative cursor-pointer border border-transparent hover:border-slate-700"
+                title="Exit / Logout"
               >
-                <LogOut className="w-5 h-5" />
-                <span className="absolute hidden group-hover:block bg-slate-800 text-white text-[10px] px-2 py-1 rounded -bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-10">
-                  লগআউট
+                <LogOut className="w-4 h-4" />
+                <span className="absolute hidden group-hover:block bg-slate-950 text-slate-200 text-[10px] px-2 py-1 rounded -bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-20 border border-slate-800">
+                  Logout
                 </span>
               </button>
             </div>

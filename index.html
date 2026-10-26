@@ -3,11 +3,67 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Onushil - HSC প্রস্তুতি প্ল্যাটফর্ম</title>
+    <title>b20ISSB | ISSB IQ Test Practice</title>
+    <meta name="description" content="Unlimited IQ Practice with b20ISSB. ISSB-style 100 IQ in 30 minutes and 50 Non-Verbal questions in 26 minutes time-locked mock tests, verbal and non-verbal reasoning, and detailed solution reviews." />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23047857'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/%3E%3C/svg%3E" />
+    <script>
+      (function() {
+        try {
+          var originalFetch = window.fetch;
+          var customFetch = originalFetch;
+          try {
+            Object.defineProperty(window, 'fetch', {
+              get: function() {
+                return customFetch || originalFetch;
+              },
+              set: function(val) {
+                customFetch = val;
+              },
+              configurable: true,
+              enumerable: true
+            });
+          } catch (e1) {
+            try {
+              Object.defineProperty(Object.getPrototypeOf(window), 'fetch', {
+                get: function() {
+                  return customFetch || originalFetch;
+                },
+                set: function(val) {
+                  customFetch = val;
+                },
+                configurable: true,
+                enumerable: true
+              });
+            } catch (e2) {}
+          }
+        } catch (e) {}
+
+        window.addEventListener('error', function(event) {
+          if (!event) return;
+          var msg = (event.message || '') + '';
+          var file = (event.filename || '') + '';
+          if (file.indexOf('chrome-extension://') !== -1 ||
+              (msg.indexOf('fetch') !== -1 && msg.indexOf('getter') !== -1)) {
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            if (event.preventDefault) event.preventDefault();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(event) {
+          if (!event || !event.reason) return;
+          var msg = (event.reason && (event.reason.message || event.reason.stack || '')) + '';
+          if (msg.indexOf('chrome-extension://') !== -1 ||
+              (msg.indexOf('fetch') !== -1 && msg.indexOf('getter') !== -1)) {
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            if (event.preventDefault) event.preventDefault();
+          }
+        }, true);
+      })();
+    </script>
   </head>
-  <body>
+  <body class="bg-slate-900 text-slate-100 antialiased selection:bg-emerald-500 selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

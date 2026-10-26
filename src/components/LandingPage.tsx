@@ -1,234 +1,211 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  GraduationCap, 
+  Shield, 
   ArrowRight, 
   Sparkles, 
-  BookOpen, 
   Clock, 
-  TrendingUp, 
+  Target, 
   ChevronDown, 
-  ChevronUp,
-  Mail, 
-  Facebook, 
-  Twitter, 
-  Youtube, 
-  Linkedin, 
+  ChevronUp, 
   Check, 
-  Award,
-  BookMarked,
-  Layers,
-  Zap,
-  HelpCircle
+  Award, 
+  Zap, 
+  Layers, 
+  Compass,
+  CheckCircle2,
+  Play
 } from 'lucide-react';
 
 interface LandingPageProps {
   onStartPracticing: () => void;
+  onStartNonVerbal?: () => void;
   username: string | null;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onStartPracticing, username }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onStartPracticing, onStartNonVerbal, username }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
+  
+  // Interactive mini preview on landing page
+  const [selectedDemoAnswer, setSelectedDemoAnswer] = useState<number | null>(null);
+  const [hasCheckedDemo, setHasCheckedDemo] = useState(false);
 
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
   };
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email.trim() && email.includes('@')) {
-      setSubscribed(true);
-      setEmail('');
-      setTimeout(() => setSubscribed(false), 5000);
-    }
-  };
-
   const faqs = [
     {
-      q: "Is the Quiz Game Software mobile friendly?",
-      a: "Yes! Onushil is designed with a mobile-first philosophy. The user interface adapts perfectly to smartphones, tablets, and laptops, offering a distraction-free, fluid, and premium testing experience on any screen size."
+      q: "What is the ISSB-style Verbal IQ format?",
+      a: "In verbal intelligence testing, candidates face 100 questions within 30 minutes (an average of 18 seconds per question). Questions include 5 options, (a) to (e), covering number and letter series, analogies, coding, and logical deductions."
     },
     {
-      q: "অনূশীলে প্রশ্নপত্র কীভাবে তৈরি করা হয়?",
-      a: "আমাদের স্বয়ংক্রিয় প্রিপারেশন ইঞ্জিন প্রতিটি পরীক্ষার শুরুতে প্রশ্নব্যাংক থেকে র্যান্ডমাইজড উপায়ে প্রশ্ন নির্বাচন করে। এতে সহজ (Low), মাঝারি (Medium) এবং কঠিন (Hard) কাঠিন্য মাত্রার একটি সুষম অনুপাত নিশ্চিত করা হয়, যা হুবহু বোর্ড পরীক্ষার মতোই অনুভূতি দেয়।"
+      q: "What is the ISSB-style Non-Verbal IQ format?",
+      a: "The Non-Verbal IQ test allows 26 minutes to complete 50 questions (or visual patterns). Candidates solve progressive matrices, shape rotations, folding cube nets, and visual pattern logic."
     },
     {
-      q: "পরীক্ষার ফলাফলের ব্যাখ্যা কি তাৎক্ষণিকভাবে পাওয়া যায়?",
-      a: "অবশ্যই! আপনার পরীক্ষা সম্পন্ন হওয়ার সাথে সাথেই প্রাপ্ত নম্বর, ভুল উত্তর এবং অনুত্তরিত প্রশ্নের পরিসংখ্যান চলে আসবে। এছাড়া প্রতিটি প্রশ্নের নিচে 'Show Answer and Solution' এ ক্লিক করে সঠিক উত্তর ও তার নেপথ্যের তাত্ত্বিক ব্যাখ্যা জানতে পারবেন।"
+      q: "How does the Unlimited IQ Practice engine work?",
+      a: "b20ISSB provides extensive practice question banks combined with randomized generation algorithms, allowing you to practice fresh sets of verbal and non-verbal test papers."
     },
     {
-      q: "নেগেটিভ মার্কিং পদ্ধতিটি কীভাবে কাজ করে?",
-      a: "বোর্ড স্ট্যান্ডার্ড অনুসরণে অনূশীলে প্রতিটি ভুল উত্তরের জন্য ০.২৫ নম্বর কাটা যাবে। তবে অনুত্তরিত বা স্কিপ করা প্রশ্নের জন্য কোনো নম্বর কাটা হবে না। এটি অনুশীলনের মাধ্যমে আপনাকে আত্মবিশ্বাসী এবং সতর্ক হতে সাহায্য করবে।"
+      q: "How does the answer review work?",
+      a: "After completing a drill, you receive a detailed answer review displaying your score, skipped questions, and comprehensive explanations with step-by-step logic for every question."
     }
   ];
 
   return (
-    <div className="space-y-24 pb-12 overflow-x-hidden">
+    <div className="space-y-24 pb-12 overflow-x-hidden text-slate-100">
       
       {/* 1. HERO SECTION */}
-      <section id="hero" className="relative pt-8 sm:pt-16 pb-8">
+      <section id="hero" className="relative pt-6 sm:pt-14 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* Left: Value Proposition */}
-          <div className="lg:col-span-7 space-y-8 text-left">
+          <div className="lg:col-span-7 space-y-7 text-left">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-50 border border-teal-100 text-[#0d9488] text-xs font-bold uppercase tracking-wider"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-black uppercase tracking-wider"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-spin" />
-              <span>HSC আইসিটি প্রস্তুতি ২০২৬</span>
+              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Bangladesh Armed Forces ISSB Preparation</span>
             </motion.div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <img 
-                  src="https://nowzyplus.live/upload/ChatGPT%20Image%20Jul%2010%2C%202026%2C%2011_17_04%20PM.png" 
-                  alt="Onushil Logo" 
-                  className="h-16 w-auto drop-shadow-md rounded-2xl border-2 border-white"
-                  referrerPolicy="no-referrer"
-                />
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-slate-800 tracking-tight leading-none">
-                  Onushil
-                </h1>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-600 tracking-tight">
-                HSC প্রস্তুতি প্ল্যাটফর্ম
+            <div className="space-y-3">
+              <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-none">
+                b20<span className="text-emerald-400">ISSB</span>
+              </h1>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-200 tracking-tight">
+                Unlimited IQ Practice with b20ISSB
               </h2>
-              <p className="text-[#0d9488] font-semibold text-lg sm:text-xl md:text-2xl italic tracking-wide">
-                'স্মার্ট প্রস্তুতি, নিশ্চিত সাফল্য'
+              <p className="text-emerald-400 font-bold text-lg sm:text-xl tracking-wide flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Time-Locked: 100 IQ Questions in 30 Minutes
               </p>
             </div>
 
-            <p className="text-slate-500 text-base sm:text-lg max-w-xl leading-relaxed">
-              অনূশীল হচ্ছে এইচএসসি আইসিটি বিষয়ের সেরা প্রস্তুতি নেওয়ার অনলাইন প্ল্যাটফর্ম। এখানে আপনি পাবেন বোর্ড স্ট্যান্ডার্ড অধ্যায়ভিত্তিক অনুশীলন পরীক্ষা, ২৫ মিনিটের মক টেস্ট এবং প্রতিটি উত্তরের তাৎক্ষণিক সচিত্র ব্যাখ্যা। আজই শুরু করুন আপনার এ-প্লাস অর্জনের যাত্রা!
+            <p className="text-slate-400 text-base sm:text-lg max-w-xl leading-relaxed">
+              Master the relentless pace of ISSB preliminary screening. Experience authentic military-standard verbal, numerical, coding, and spatial matrix reasoning drills with strict time-lock simulation.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <motion.button
-                whileHover={{ scale: 1.02, y: -2 }}
+                whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onStartPracticing}
-                className="bg-[#0d9488] hover:bg-[#0b7e74] text-white font-extrabold px-8 py-5 rounded-2xl shadow-xl shadow-teal-700/20 hover:shadow-teal-800/30 transition-all duration-200 flex items-center justify-center gap-2.5 text-lg cursor-pointer"
+                className="bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black px-8 py-5 rounded-2xl shadow-xl shadow-emerald-950/70 transition-all flex items-center justify-center gap-3 text-lg cursor-pointer"
               >
-                <span>{username ? 'ড্যাশবোর্ডে যান' : 'পরীক্ষা শুরু করুন'}</span>
-                <ArrowRight className="w-5 h-5" />
+                <span>{username ? 'Launch Cadet Portal' : 'Start 100 IQ Practice'}</span>
+                <ArrowRight className="w-5 h-5 text-slate-950" />
               </motion.button>
               
+              <button
+                onClick={onStartNonVerbal || onStartPracticing}
+                className="border-2 border-slate-700 hover:border-emerald-500/50 bg-slate-900/90 hover:bg-slate-850 text-slate-200 font-bold px-8 py-5 rounded-2xl transition-all flex items-center justify-center gap-2 text-base cursor-pointer"
+              >
+                Start Non-Verbal Practice
+              </button>
+
               <a 
                 href="#features"
-                className="border-2 border-slate-200 hover:border-[#0d9488] hover:text-[#0d9488] bg-white text-slate-600 font-extrabold px-8 py-5 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2.5 text-base"
+                className="border-2 border-slate-700 hover:border-emerald-500/50 bg-slate-900/90 hover:bg-slate-850 text-slate-200 font-bold px-8 py-5 rounded-2xl transition-all flex items-center justify-center gap-2 text-base"
               >
-                ফিচারসমূহ দেখুন
+                Inspect ISSB Format
               </a>
             </div>
 
-            <div className="flex items-center gap-6 pt-2 text-xs font-bold text-slate-400">
+            <div className="flex flex-wrap items-center gap-6 pt-2 text-xs font-bold text-slate-400">
               <span className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-emerald-500 stroke-[3]" /> কোনো ফি প্রয়োজন নেই
+                <Check className="w-4 h-4 text-emerald-400 stroke-[3]" /> Strict 30:00 Auto-Submit
               </span>
               <span className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-emerald-500 stroke-[3]" /> ৩০০+ মানসম্মত প্রশ্ন
+                <Check className="w-4 h-4 text-emerald-400 stroke-[3]" /> Verbal & Non-Verbal Matrices
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-400 stroke-[3]" /> Infinite Practice Sets
               </span>
             </div>
           </div>
 
-          {/* Right: High-fidelity CSS Phone Mockup */}
+          {/* Right: Interactive Military HUD Preview */}
           <div className="lg:col-span-5 flex justify-center items-center">
             <motion.div 
-              initial={{ opacity: 0, y: 40, rotate: 2 }}
-              animate={{ opacity: 1, y: 0, rotate: -2 }}
-              transition={{ duration: 0.7, type: 'spring', stiffness: 60 }}
-              className="relative w-full max-w-[340px]"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="relative w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 shadow-2xl shadow-emerald-950/40 text-left space-y-5"
             >
-              {/* Outer Shadow glow */}
-              <div className="absolute inset-0 bg-[#0d9488]/10 rounded-[48px] blur-3xl -z-10"></div>
-              
-              {/* Mockup Frame */}
-              <div className="relative border-[10px] border-slate-800 bg-slate-900 rounded-[48px] shadow-2xl overflow-hidden aspect-[9/18] w-full">
-                
-                {/* Speaker Ear Piece */}
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 h-4 w-28 bg-slate-800 rounded-b-xl z-20 flex items-center justify-center">
-                  <div className="w-8 h-1 bg-slate-700 rounded-full"></div>
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-300">Live Simulation HUD</span>
                 </div>
-
-                {/* Inside Screen Content */}
-                <div className="h-full bg-slate-50 p-4 pt-6 flex flex-col justify-between overflow-y-auto font-sans select-none text-left">
-                  
-                  {/* Internal Mock Header */}
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-3">
-                    <div className="flex items-center gap-1.5">
-                      <GraduationCap className="w-4 h-4 text-[#0d9488]" />
-                      <span className="text-[11px] font-black tracking-tight text-slate-700">Onushil Mobile</span>
-                    </div>
-                    <span className="text-[10px] bg-red-50 text-red-500 font-extrabold px-1.5 py-0.5 rounded">লাইভ মক টেস্ট</span>
-                  </div>
-
-                  {/* MCQ Exam card */}
-                  <div className="space-y-3 flex-grow">
-                    <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold mb-1">
-                      <span>প্রশ্ন নং: ১২ / ২৫</span>
-                      <span className="text-[#0d9488] font-mono animate-pulse">সময়: ২৩:৪৫</span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-[#0d9488] h-full w-[80%] rounded-full"></div>
-                    </div>
-
-                    <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm space-y-2 mt-2">
-                      <h4 className="text-xs font-black text-slate-800 leading-snug">
-                        নিচের কোনটির কল্যাণে ঘরে বসেই বিশ্বকে হাতের মুঠোয় পাওয়া যাচ্ছে?
-                      </h4>
-
-                      <div className="space-y-1.5 pt-1">
-                        <div className="border-2 border-emerald-500 bg-emerald-50 text-emerald-900 rounded-xl p-2 text-[10px] font-bold flex items-center justify-between">
-                          <span>K. ইন্টারনেট</span>
-                          <span className="w-3.5 h-3.5 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[8px] font-black">✓</span>
-                        </div>
-                        <div className="border border-slate-100 bg-slate-50 text-slate-500 rounded-xl p-2 text-[10px] font-medium">
-                          <span>L. টেলিভিশন</span>
-                        </div>
-                        <div className="border border-slate-100 bg-slate-50 text-slate-500 rounded-xl p-2 text-[10px] font-medium">
-                          <span>M. টেলিফোন</span>
-                        </div>
-                        <div className="border border-slate-100 bg-slate-50 text-slate-500 rounded-xl p-2 text-[10px] font-medium">
-                          <span>N. মোবাইল</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Show explanation accordion mock */}
-                    <div className="bg-emerald-50/50 border border-emerald-100/80 rounded-2xl p-2.5 space-y-1">
-                      <div className="flex items-center justify-between text-[10px] text-emerald-800 font-bold">
-                        <span>সমাধান ও ব্যাখ্যা:</span>
-                        <ChevronDown className="w-3 h-3 text-emerald-600" />
-                      </div>
-                      <p className="text-[9px] text-slate-500 leading-relaxed font-semibold">
-                        ব্যাখ্যা: ইন্টারনেটের সুবিধার ব্যাপক প্রসারের কারণে সমগ্র বিশ্ব এখন একটি গ্লোবাল ভিলেজে পরিণত হয়েছে।
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Action buttons mock */}
-                  <div className="mt-3 pt-2 border-t border-slate-100 flex gap-2">
-                    <div className="w-1/2 bg-slate-200 text-slate-600 rounded-xl py-2 text-center text-[10px] font-extrabold">
-                      পরবর্তী প্রশ্ন
-                    </div>
-                    <div className="w-1/2 bg-[#0d9488] text-white rounded-xl py-2 text-center text-[10px] font-extrabold">
-                      সাবমিট করুন
-                    </div>
-                  </div>
-
+                <div className="bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-black px-2 py-0.5 rounded uppercase">
+                  Time-Locked: 29:42
                 </div>
               </div>
 
-              {/* Floating Badge */}
-              <div className="absolute -right-6 top-12 bg-amber-400 text-slate-900 border-2 border-white px-3 py-1.5 rounded-2xl shadow-lg rotate-12 z-20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-                <Award className="w-3.5 h-3.5" /> A+ গ্যারান্টি
+              {/* Sample Question Box */}
+              <div className="space-y-3">
+                <div className="flex justify-between text-[11px] font-bold text-slate-400">
+                  <span>Question 42 of 100</span>
+                  <span className="text-emerald-400 font-mono">Pace: 16.8s/item</span>
+                </div>
+
+                <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+                  <p className="text-sm font-extrabold text-white leading-snug">
+                    Which number completes the sequence: <br/>
+                    <span className="text-emerald-400 font-mono text-base">2, 6, 12, 20, 30, 42, ?</span>
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    {['52', '54', '56', '58'].map((opt, i) => {
+                      const isSelected = selectedDemoAnswer === i;
+                      const isCorrect = i === 2;
+                      let btnStyle = "border-slate-800 bg-slate-900 text-slate-300 hover:border-slate-700";
+                      
+                      if (hasCheckedDemo) {
+                        if (isCorrect) btnStyle = "border-emerald-400 bg-emerald-500/20 text-emerald-200 font-bold";
+                        else if (isSelected) btnStyle = "border-rose-400 bg-rose-500/20 text-rose-200";
+                      } else if (isSelected) {
+                        btnStyle = "border-emerald-500 bg-emerald-500/20 text-white font-bold";
+                      }
+
+                      return (
+                        <button
+                          key={opt}
+                          onClick={() => {
+                            setSelectedDemoAnswer(i);
+                            setHasCheckedDemo(true);
+                          }}
+                          className={`p-2.5 rounded-xl border text-xs font-mono font-bold transition-all text-center cursor-pointer ${btnStyle}`}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {hasCheckedDemo && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs space-y-1"
+                  >
+                    <span className="font-bold text-emerald-400">Rule Analysis:</span>
+                    <p className="text-slate-300 text-[11px]">
+                      Difference grows by +2: +4, +6, +8, +10, +12, +14. Thus 42 + 14 = <strong>56</strong> (or n(n+1): 7×8=56).
+                    </p>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Status pill */}
+              <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                <span className="font-medium">1-100 Matrix Navigator</span>
+                <span className="text-emerald-400 font-bold">Unlimited Drills Active</span>
               </div>
             </motion.div>
           </div>
@@ -236,102 +213,126 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartPracticing, use
         </div>
       </section>
 
-      {/* 2. WHY ONUSHIL? (FEATURES GRID) */}
+      {/* 2. WHY b20ISSB (FEATURES GRID) */}
       <section id="features" className="scroll-mt-24 space-y-12">
         <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <span className="text-[#0d9488] font-extrabold text-sm uppercase tracking-widest bg-teal-50 px-3 py-1 rounded-full border border-teal-100">
-            ফিচার সমূহ
+          <span className="text-emerald-400 font-extrabold text-xs uppercase tracking-widest bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30">
+            Cadet Preparation Architecture
           </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">
-            অনূশীল কেন প্রস্তুতিতে অনন্য?
+          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            Why b20ISSB Is Essential for Screening
           </h2>
-          <p className="text-slate-500 text-sm sm:text-base leading-relaxed">
-            এইচএসসি বোর্ড পরীক্ষার অনুরূপ মান বজায় রেখে অনূশীল প্রস্তুত করা হয়েছে, যা আপনার সময় সচেতনতা বৃদ্ধি করে নিশ্চিত ফলাফল বয়ে আনবে।
+          <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+            ISSB-style intelligence screening demands speed and precision under strict time limits. b20ISSB ingrains instinctive speed and pattern precision.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           
-          {/* Card 1: Chapter-wise Practice */}
-          <motion.div 
-            whileHover={{ y: -8 }}
-            className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-left flex flex-col justify-between space-y-6 hover:shadow-md transition-all duration-300 relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50/50 rounded-bl-[80px] -z-10"></div>
-            <div className="w-14 h-14 bg-teal-50 text-[#0d9488] rounded-2xl flex items-center justify-center shadow-inner">
-              <BookOpen className="w-7 h-7" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-black text-slate-800 tracking-tight">
-                অধ্যায়-ভিত্তিক অনুশীলন
-              </h3>
-              <p className="text-slate-500 text-sm leading-relaxed">
-                HSC আইসিটির প্রতিটি অধ্যায় (তথ্য যোগাযোগ প্রযুক্তি, বিশ্বগ্রাম, সংখ্যা পদ্ধতি, ডিজিটাল ডিভাইস, HTML ও প্রোগ্রামিং ভাষা) থেকে নিখুঁত প্রশ্নব্যাংক সাজানো হয়েছে।
-              </p>
-            </div>
-            <div className="text-xs font-bold text-[#0d9488] flex items-center gap-1 pt-2">
-              ১০০% সিলেবাস কাভার্ড <ArrowRight className="w-3 h-3" />
-            </div>
-          </motion.div>
-
-          {/* Card 2: Timed Mock Tests */}
-          <motion.div 
-            whileHover={{ y: -8 }}
-            className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-left flex flex-col justify-between space-y-6 hover:shadow-md transition-all duration-300 relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50/50 rounded-bl-[80px] -z-10"></div>
-            <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner">
+          {/* Card 1: Verbal IQ Examination */}
+          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 text-left space-y-5 hover:border-slate-700 transition-all shadow-xl">
+            <div className="w-14 h-14 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-2xl flex items-center justify-center">
               <Clock className="w-7 h-7" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-black text-slate-800 tracking-tight">
-                সময়-নির্ধারিত মক টেস্ট
+              <h3 className="text-lg font-black text-white tracking-tight">
+                Verbal IQ (100 Q • 30 Min)
               </h3>
-              <p className="text-slate-500 text-sm leading-relaxed">
-                ২৫ মিনিটের মধ্যে ২৫টি প্রশ্নের উত্তর দেওয়ার নিখুঁত পরীক্ষা ইঞ্জিন যা স্বয়ংক্রিয়ভাবে মক টেস্ট সম্পন্ন করে। বোর্ড পরীক্ষার প্রকৃত টাইম ম্যানেজমেন্ট চর্চা করতে অনন্য সাহায্য করবে।
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                Experience ISSB-style verbal drills. 100 questions with 5 options, (a) to (e), number series, jumbled letters, and analogies locked to 30 minutes.
               </p>
             </div>
-            <div className="text-xs font-bold text-amber-600 flex items-center gap-1 pt-2">
-              অটোমেটিক টাইম ট্র্যাকার <ArrowRight className="w-3 h-3" />
+            <div className="text-xs font-bold text-emerald-400 flex items-center gap-1 pt-2">
+              18s / Question Target <ArrowRight className="w-3 h-3" />
             </div>
-          </motion.div>
+          </div>
 
-          {/* Card 3: Performance Analytics */}
-          <motion.div 
-            whileHover={{ y: -8 }}
-            className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-left flex flex-col justify-between space-y-6 hover:shadow-md transition-all duration-300 relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50/50 rounded-bl-[80px] -z-10"></div>
-            <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
-              <TrendingUp className="w-7 h-7" />
+          {/* Card 2: Non-Verbal Progressive Matrices */}
+          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 text-left space-y-5 hover:border-slate-700 transition-all shadow-xl">
+            <div className="w-14 h-14 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-2xl flex items-center justify-center">
+              <Sparkles className="w-7 h-7" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-black text-slate-800 tracking-tight">
-                ব্যাখ্যাসহ নির্ভুল মূল্যায়ন
+              <h3 className="text-lg font-black text-white tracking-tight">
+                Non-Verbal IQ (50 Q • 26 Min)
               </h3>
-              <p className="text-slate-500 text-sm leading-relaxed">
-                ভুল উত্তরের জন্য ০.২৫ নম্বর কাটা যাবে এবং সঠিক সমাধান ও তত্ত্ব বিস্তারিতভাবে পড়ার সুবিধা রয়েছে। আপনি অন্য শিক্ষার্থীদের থেকে কতটা এগিয়ে তা জেনে নিয়ে পড়াশোনা উন্নত করুন।
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                The ISSB-style Non-Verbal standard allows strictly 26 minutes for 50 questions. Practice 3×3 Raven matrices, shape rotations, folding nets, and overlay subtraction logic.
               </p>
             </div>
-            <div className="text-xs font-bold text-emerald-600 flex items-center gap-1 pt-2">
-              উন্নত পরিসংখ্যান ও র‍্যাংকিং <ArrowRight className="w-3 h-3" />
+            <div className="text-xs font-bold text-amber-400 flex items-center gap-1 pt-2">
+              26-Min Time-Locked <ArrowRight className="w-3 h-3" />
             </div>
-          </motion.div>
+          </div>
+
+          {/* Card 3: Detailed Answer Review */}
+          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 text-left space-y-5 hover:border-slate-700 transition-all shadow-xl">
+            <div className="w-14 h-14 bg-teal-500/15 text-teal-400 border border-teal-500/30 rounded-2xl flex items-center justify-center">
+              <Award className="w-7 h-7" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-white tracking-tight">
+                Detailed Answer Review
+              </h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                See your score, skipped questions, and the correct answer with an explanation for every question.
+              </p>
+            </div>
+            <div className="text-xs font-bold text-teal-400 flex items-center gap-1 pt-2">
+              Full solution logic <ArrowRight className="w-3 h-3" />
+            </div>
+          </div>
+
+          {/* Card 4: PPDT */}
+          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 text-left space-y-5 shadow-xl select-none">
+            <div className="w-14 h-14 bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 rounded-2xl flex items-center justify-center">
+              <Compass className="w-7 h-7" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-white tracking-tight">
+                PPDT
+              </h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                Picture Perception and Discussion Test simulation with timed picture exposure, individual story writing, and group discussion preparation.
+              </p>
+            </div>
+            <div className="text-xs font-bold text-slate-500 flex items-center gap-1 pt-2">
+              Coming soon
+            </div>
+          </div>
+
+          {/* Card 5: WAT */}
+          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 text-left space-y-5 shadow-xl select-none">
+            <div className="w-14 h-14 bg-purple-500/15 text-purple-400 border border-purple-500/30 rounded-2xl flex items-center justify-center">
+              <Zap className="w-7 h-7" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-white tracking-tight">
+                WAT (80 words, 10 seconds each)
+              </h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                Word Association Test drill displaying 80 words consecutively for 10 seconds each to practice immediate sentence construction under pressure.
+              </p>
+            </div>
+            <div className="text-xs font-bold text-slate-500 flex items-center gap-1 pt-2">
+              Coming soon
+            </div>
+          </div>
 
         </div>
       </section>
 
-      {/* 3. FAQ SECTION (ACCORDION) */}
+      {/* 3. FAQ SECTION */}
       <section id="faq" className="scroll-mt-24 space-y-12">
         <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <span className="text-[#0d9488] font-extrabold text-sm uppercase tracking-widest bg-teal-50 px-3 py-1 rounded-full border border-teal-100">
-            জিজ্ঞাসা
+          <span className="text-emerald-400 font-extrabold text-xs uppercase tracking-widest bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30">
+            Candidate Guidance
           </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">
-            সচরাচর জিজ্ঞাসিত প্রশ্নাবলী
+          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            Frequently Asked Questions
           </h2>
-          <p className="text-slate-500 text-sm sm:text-base leading-relaxed">
-            অনূশীল প্ল্যাটফর্ম এবং পরীক্ষা সংক্রান্ত বিষয়ে কোনো প্রশ্ন থাকলে নিচের উত্তরগুলো দেখতে পারেন।
+          <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+            Everything you need to know about preparing for the ISSB intelligence test with b20ISSB.
           </p>
         </div>
 
@@ -341,15 +342,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartPracticing, use
             return (
               <div 
                 key={index} 
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:border-[#0d9488]/40 transition-colors duration-200"
+                className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-sm hover:border-emerald-500/40 transition-colors"
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left font-extrabold text-slate-800 text-sm sm:text-base hover:bg-slate-50/50 transition-colors cursor-pointer"
+                  className="w-full px-6 py-5 flex items-center justify-between text-left font-extrabold text-white text-sm sm:text-base hover:bg-slate-850 transition-colors cursor-pointer"
                 >
                   <span className="pr-4">{faq.q}</span>
                   {isOpen ? (
-                    <ChevronUp className="w-5 h-5 text-[#0d9488] flex-shrink-0" />
+                    <ChevronUp className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                   ) : (
                     <ChevronDown className="w-5 h-5 text-slate-400 flex-shrink-0" />
                   )}
@@ -363,7 +364,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartPracticing, use
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25, ease: "easeInOut" }}
                     >
-                      <div className="px-6 pb-6 text-sm text-slate-500 leading-relaxed border-t border-slate-100 pt-4">
+                      <div className="px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-slate-800 pt-4 text-left">
                         {faq.a}
                       </div>
                     </motion.div>
@@ -375,88 +376,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartPracticing, use
         </div>
       </section>
 
-      {/* 4. NEWSLETTER SECTION */}
-      <section id="newsletter" className="relative">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-[#0d9488] rounded-3xl p-8 sm:p-12 text-white text-center relative overflow-hidden shadow-xl border border-teal-600/30">
-            {/* Background elements */}
-            <div className="absolute -right-20 -top-20 w-64 h-64 bg-teal-800 rounded-full blur-3xl opacity-60"></div>
-            <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-teal-900 rounded-full blur-3xl opacity-50"></div>
-
-            <div className="relative space-y-6 max-w-2xl mx-auto">
-              <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto border border-white/20">
-                <Mail className="w-7 h-7 text-emerald-300" />
-              </div>
-
-              <h3 className="text-2xl sm:text-3xl font-black tracking-tight">
-                Stay Updated / নতুন আপডেটের সাথে থাকুন
-              </h3>
-              
-              <p className="text-teal-100 text-sm sm:text-base leading-relaxed">
-                অনূশীলের নতুন অধ্যায়ের প্রশ্নব্যাংক, এইচএসসি সাজেশন এবং পরীক্ষা প্রস্তুতি সংক্রান্ত দরকারি গাইড নিয়মিত আপনার ইমেইলে পেতে আজই নিউজলেটারে যুক্ত হয়ে থাকুন।
-              </p>
-
-              <form onSubmit={handleSubscribe} className="pt-2">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="আপনার ইমেইল অ্যাড্রেস লিখুন"
-                    required
-                    className="flex-grow px-5 py-4 rounded-2xl bg-white/10 backdrop-blur-md border-2 border-white/20 text-white placeholder:text-teal-200 outline-none focus:border-white focus:bg-white/15 transition-all duration-200"
-                  />
-                  
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    className="bg-[#f97316] hover:bg-[#ea580c] text-white font-extrabold px-8 py-4 rounded-2xl transition-all duration-200 shadow-md shadow-orange-950/20 cursor-pointer flex-shrink-0"
-                  >
-                    Subscribe
-                  </motion.button>
-                </div>
-              </form>
-
-              <AnimatePresence>
-                {subscribed && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="text-emerald-300 text-xs font-black mt-3 flex items-center justify-center gap-1.5"
-                  >
-                    <Check className="w-4 h-4 text-emerald-300 stroke-[3]" />
-                    ধন্যবাদ! আপনি সফলভাবে নিউজলেটারে সাবস্ক্রাইব করেছেন।
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </div>
+      {/* 4. FOOTER */}
+      <footer className="pt-12 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-6 text-slate-500 font-medium text-xs sm:text-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30">
+            <Shield className="w-3.5 h-3.5" />
           </div>
+          <span className="font-bold text-slate-400">b20ISSB — Unlimited IQ Practice Portal</span>
         </div>
-      </section>
-
-      {/* 5. FOOTER */}
-      <footer className="pt-12 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-6 text-slate-400 font-medium text-xs sm:text-sm">
-        <p className="flex items-center gap-1.5 font-bold">
-          <span>© 2026 Onushil. All Rights Reserved</span>
+        <div className="flex items-center gap-4 text-slate-400 font-semibold text-xs">
+          <a href="#about" className="hover:text-emerald-400 transition-colors">About</a>
+          <a href="#contact" className="hover:text-emerald-400 transition-colors">Contact</a>
+          <a href="#privacy" className="hover:text-emerald-400 transition-colors">Privacy</a>
+          <a href="#terms" className="hover:text-emerald-400 transition-colors">Terms</a>
+        </div>
+        <p className="text-slate-500 text-xs text-center sm:text-right">
+          b20ISSB is an independent practice platform and is not affiliated with ISSB or any armed force.
         </p>
-        
-        {/* Social Icons */}
-        <div className="flex items-center gap-4">
-          <a href="#" className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-[#0d9488] hover:border-[#0d9488]/40 transition-all shadow-sm">
-            <Facebook className="w-4 h-4" />
-          </a>
-          <a href="#" className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-[#0d9488] hover:border-[#0d9488]/40 transition-all shadow-sm">
-            <Twitter className="w-4 h-4" />
-          </a>
-          <a href="#" className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-[#0d9488] hover:border-[#0d9488]/40 transition-all shadow-sm">
-            <Youtube className="w-4 h-4" />
-          </a>
-          <a href="#" className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-[#0d9488] hover:border-[#0d9488]/40 transition-all shadow-sm">
-            <Linkedin className="w-4 h-4" />
-          </a>
-        </div>
       </footer>
 
     </div>
