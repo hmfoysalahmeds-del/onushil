@@ -1,0 +1,211 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered candidate profile with auth info and leaderboard visibility preferences",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Unique Firebase Authentication UID"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Full name from Google account"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 150,
+          "description": "User email address"
+        },
+        "photo": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "User profile photo URL"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Custom display name for leaderboard"
+        },
+        "showOnLeaderboard": {
+          "type": "boolean",
+          "description": "Whether candidate wants their score listed publicly on the leaderboard"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["student", "admin"],
+          "description": "User access role"
+        },
+        "blocked": {
+          "type": "boolean",
+          "description": "Whether candidate is blocked from taking exams"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "User document creation timestamp"
+        },
+        "lastLoginAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of most recent login"
+        }
+      },
+      "required": ["uid", "name", "email", "role", "blocked"]
+    },
+    "ExamHistory": {
+      "title": "ExamHistory",
+      "description": "Candidate exam attempt record with detailed performance metrics",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Unique exam history entry ID"
+        },
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Candidate UID"
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of exam completion"
+        },
+        "score": {
+          "type": "number",
+          "description": "Total raw score / correct answers"
+        },
+        "correctAnswers": {
+          "type": "number",
+          "description": "Count of correct answers"
+        },
+        "wrongAnswers": {
+          "type": "number",
+          "description": "Count of incorrect answers"
+        },
+        "unanswered": {
+          "type": "number",
+          "description": "Count of unanswered questions"
+        },
+        "timeTakenSeconds": {
+          "type": "number",
+          "description": "Total time spent taking test in seconds"
+        },
+        "totalQuestions": {
+          "type": "number",
+          "description": "Total count of questions in test"
+        },
+        "negativeMarks": {
+          "type": "number",
+          "description": "Deductions for incorrect responses"
+        },
+        "obtainedMarks": {
+          "type": "number",
+          "description": "Net marks after negative marking"
+        },
+        "mode": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Exam mode identifier"
+        },
+        "testType": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "verbal or non-verbal"
+        },
+        "issbStatus": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Calculated status tier"
+        },
+        "speedPerQuestion": {
+          "type": "number",
+          "description": "Average seconds per answered question"
+        }
+      },
+      "required": ["id", "uid", "score", "totalQuestions", "timeTakenSeconds"]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Public competitive record for completed exams with privacy flags",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Candidate UID"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Display name to show publicly on leaderboard (never email)"
+        },
+        "photo": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Candidate profile photo URL"
+        },
+        "testType": {
+          "type": "string",
+          "enum": ["verbal", "non-verbal"],
+          "description": "Category of test (verbal or non-verbal)"
+        },
+        "setName": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Set or mode name (e.g., Verbal Set 1, Verbal Set 2, Non-Verbal Set 1)"
+        },
+        "score": {
+          "type": "number",
+          "description": "Correct answers score"
+        },
+        "total": {
+          "type": "number",
+          "description": "Total questions in test"
+        },
+        "accuracy": {
+          "type": "number",
+          "description": "Accuracy percentage (0 - 100)"
+        },
+        "timeTaken": {
+          "type": "number",
+          "description": "Duration taken in seconds"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when test was submitted"
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "If true, hidden from public leaderboard but visible to author"
+        }
+      },
+      "required": ["uid", "displayName", "testType", "score", "total", "accuracy", "timeTaken", "hidden"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile with role, status, and leaderboard preferences. Only accessible by the user themselves."
+    },
+    "/users/{userId}/history/{historyId}": {
+      "schema": "ExamHistory",
+      "description": "Candidate private test results history. Only readable and writable by the user."
+    },
+    "/leaderboard/{entryId}": {
+      "schema": "LeaderboardEntry",
+      "description": "Immutable leaderboard records for completed tests. Readable by logged-in users; records with hidden: true only readable by the author."
+    }
+  }
+}

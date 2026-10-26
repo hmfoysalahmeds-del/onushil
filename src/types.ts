@@ -51,3 +51,33 @@ export interface ExamHistory {
   speedPerQuestion: number;
   topicBreakdown?: Record<string, { correct: number; total: number }>;
 }
+
+export interface UserProfile {
+  uid: string;
+  name: string;
+  email: string;
+  photo: string;
+  displayName: string;
+  showOnLeaderboard: boolean;
+  role: 'student' | 'admin';
+  blocked: boolean;
+  createdAt: string;
+  lastLoginAt: string;
+}
+
+export interface LeaderboardEntry {
+  id?: string;
+  uid: string;
+  displayName: string;
+  photo: string;
+  testType: 'verbal' | 'non-verbal';
+  setName: string;
+  score: number;
+  total: number;
+  accuracy: number;
+  timeTaken: number; // in seconds
+  createdAt: string; // ISO string
+  hidden: boolean;
+}
+
+export type LeaderboardPeriod = 'week' | 'month' | 'all';

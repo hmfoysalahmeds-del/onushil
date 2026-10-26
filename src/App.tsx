@@ -1,17 +1,30 @@
 import { useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { Navbar } from './components/Navbar';
 import { LandingPage } from './components/LandingPage';
 import { LoginScreen } from './components/LoginScreen';
 import { DashboardScreen } from './components/DashboardScreen';
 import { QuizScreen } from './components/QuizScreen';
 import { ResultsScreen } from './components/ResultsScreen';
+import { LeaderboardScreen } from './components/LeaderboardScreen';
+import { ProfileSettingsModal } from './components/ProfileSettingsModal';
 import { generateISSBExam } from './data/questions';
-import { Question, ExamHistory, ExamMode } from './types';
+import { Question, ExamHistory, ExamMode, UserProfile } from './types';
+import { 
+  auth, 
+  syncUserProfile, 
+  logOutUser, 
+  fetchUserHistory, 
+  saveExamResultToFirestore,
+  fetchLeaderboardEntries 
+} from './lib/firebase';
 
 export default function App() {
-  const [screen, setScreen] = useState<'landing' | 'login' | 'dashboard' | 'quiz' | 'results'>('landing');
-  const [username, setUsername] = useState<string | null>(null);
+  const [screen, setScreen] = useState<'landing' | 'login' | 'dashboard' | 'quiz' | 'results' | 'leaderboard'>('landing');
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [history, setHistory] = useState<ExamHistory[]>([]);
+  const [bestRank, setBestRank] = useState<number | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   // Current test state
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
@@ -20,45 +33,123 @@ export default function App() {
   const [examDurationMinutes, setExamDurationMinutes] = useState<number>(30);
   const [lastExamTimeSeconds, setLastExamTimeSeconds] = useState<number>(1800);
 
-  // Load candidate & history on mount
-  useEffect(() => {
-    const cachedUser = localStorage.getItem('b20issb_user');
-    if (cachedUser) {
-      setUsername(cachedUser);
-      setScreen('dashboard');
-    }
+  // Helper to calculate user's best rank across both categories
+  const calculateBestRank = async (uid: string) => {
+    try {
+      const [verbalEntries, nonVerbalEntries] = await Promise.all([
+        fetchLeaderboardEntries('verbal'),
+        fetchLeaderboardEntries('non-verbal'),
+      ]);
 
-    const cachedHistory = localStorage.getItem('b20issb_history');
-    if (cachedHistory) {
-      try {
-        setHistory(JSON.parse(cachedHistory));
-      } catch (e) {
-        console.error('Failed to parse history from local storage', e);
+      const getRankForEntries = (entries: typeof verbalEntries) => {
+        const userBestMap = new Map<string, typeof entries[0]>();
+        entries.forEach((e) => {
+          const ex = userBestMap.get(e.uid);
+          if (!ex || e.score > ex.score || (e.score === ex.score && e.timeTaken < ex.timeTaken)) {
+            userBestMap.set(e.uid, e);
+          }
+        });
+        const sorted = Array.from(userBestMap.values()).sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          if (a.timeTaken !== b.timeTaken) return a.timeTaken - b.timeTaken;
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        });
+        const index = sorted.findIndex((e) => e.uid === uid);
+        return index !== -1 ? index + 1 : null;
+      };
+
+      const vRank = getRankForEntries(verbalEntries);
+      const nvRank = getRankForEntries(nonVerbalEntries);
+
+      if (vRank !== null && nvRank !== null) {
+        setBestRank(Math.min(vRank, nvRank));
+      } else if (vRank !== null) {
+        setBestRank(vRank);
+      } else if (nvRank !== null) {
+        setBestRank(nvRank);
+      } else {
+        setBestRank(null);
       }
+    } catch (err) {
+      console.warn('Failed to calculate best rank:', err);
     }
-  }, []);
-
-  const handleLoginSuccess = (name: string) => {
-    localStorage.setItem('b20issb_user', name);
-    setUsername(name);
-    setScreen('dashboard');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('b20issb_user');
-    setUsername(null);
+  // Firebase Auth persistence listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const profile = await syncUserProfile(firebaseUser);
+          setUserProfile(profile);
+
+          // Fetch cloud history for this user
+          const cloudHistory = await fetchUserHistory(firebaseUser.uid);
+          setHistory(cloudHistory);
+
+          // Compute user's best rank
+          await calculateBestRank(firebaseUser.uid);
+
+          // If on login screen or first load with active session, redirect to dashboard
+          setScreen((prev) => (prev === 'login' ? 'dashboard' : prev));
+        } catch (error) {
+          console.error('Error synchronizing candidate profile:', error);
+        }
+      } else {
+        setUserProfile(null);
+        setHistory([]);
+        setBestRank(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLoginSuccess = async (firebaseUser: any) => {
+    try {
+      const profile = await syncUserProfile(firebaseUser);
+      setUserProfile(profile);
+      const cloudHistory = await fetchUserHistory(firebaseUser.uid);
+      setHistory(cloudHistory);
+      await calculateBestRank(firebaseUser.uid);
+      setScreen('dashboard');
+    } catch (e) {
+      console.error('Login sync failure:', e);
+      setScreen('dashboard');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logOutUser();
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
+    setUserProfile(null);
+    setHistory([]);
+    setBestRank(null);
     setScreen('landing');
   };
 
   const handleClearHistory = () => {
-    if (window.confirm('Are you sure you want to clear your ISSB examination log?')) {
-      localStorage.removeItem('b20issb_history');
+    if (window.confirm('Are you sure you want to clear your local session history view?')) {
       setHistory([]);
     }
   };
 
   // Launch fresh test from Unlimited Engine
   const startExam = (mode: ExamMode = 'verbal-set-1', topicFilter?: string) => {
+    // If not authenticated, require login first
+    if (!userProfile) {
+      setScreen('login');
+      return;
+    }
+
+    if (userProfile.blocked) {
+      alert('Your candidate account is currently blocked from starting exams. Please contact administration.');
+      return;
+    }
+
     setExamMode(mode);
     setUserAnswers({});
 
@@ -81,7 +172,7 @@ export default function App() {
     setScreen('quiz');
   };
 
-  const handleExamSubmit = (answers: Record<number, number>, timeTakenSeconds: number) => {
+  const handleExamSubmit = async (answers: Record<number, number>, timeTakenSeconds: number) => {
     setUserAnswers(answers);
     setLastExamTimeSeconds(timeTakenSeconds);
 
@@ -105,7 +196,7 @@ export default function App() {
     const negativeMarks = wrong * 0.25;
     const obtainedMarks = Math.max(0, correctMarks - negativeMarks);
 
-    // Determine ISSB Standing (Score and accuracy based)
+    // Determine ISSB Standing
     const percentage = Math.round((correct / currentQuestions.length) * 100);
     let issbStatus: ExamHistory['issbStatus'] = 'Not Recommended';
     if (percentage >= 75) {
@@ -138,7 +229,14 @@ export default function App() {
 
     const updatedHistory = [newHistoryEntry, ...history];
     setHistory(updatedHistory);
-    localStorage.setItem('b20issb_history', JSON.stringify(updatedHistory));
+
+    // Persist to Firestore and post to Leaderboard (if answered >= 10)
+    if (userProfile) {
+      const answeredCount = correct + wrong;
+      await saveExamResultToFirestore(userProfile, newHistoryEntry, answeredCount);
+      // Recompute rank
+      await calculateBestRank(userProfile.uid);
+    }
 
     setScreen('results');
   };
@@ -146,26 +244,31 @@ export default function App() {
   return (
     <div className="bg-slate-950 min-h-screen font-sans antialiased text-slate-100 flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
       <Navbar 
-        username={username} 
+        userProfile={userProfile} 
         currentScreen={screen} 
         onLogout={handleLogout} 
-        onNavigate={(targetScreen) => setScreen(targetScreen)} 
+        onNavigate={(targetScreen) => setScreen(targetScreen)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
         {screen === 'landing' && (
           <LandingPage 
             onStartPracticing={() => {
-              if (username) {
+              if (userProfile) {
                 setScreen('dashboard');
               } else {
                 setScreen('login');
               }
             }}
             onStartNonVerbal={() => {
-              startExam('non-verbal-set-1');
+              if (userProfile) {
+                startExam('non-verbal-set-1');
+              } else {
+                setScreen('login');
+              }
             }}
-            username={username}
+            username={userProfile ? userProfile.name : null}
           />
         )}
 
@@ -173,12 +276,27 @@ export default function App() {
           <LoginScreen onLoginSuccess={handleLoginSuccess} />
         )}
 
-        {screen === 'dashboard' && username && (
+        {screen === 'leaderboard' && (
+          <LeaderboardScreen
+            userProfile={userProfile}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onStartExam={(type) => {
+              if (type === 'verbal') startExam('verbal-set-1');
+              else startExam('non-verbal-set-1');
+            }}
+            onNavigateLogin={() => setScreen('login')}
+          />
+        )}
+
+        {screen === 'dashboard' && userProfile && (
           <DashboardScreen
-            username={username}
+            username={userProfile.displayName || userProfile.name}
             history={history}
+            bestRank={bestRank}
+            isBlocked={userProfile.blocked}
             onStartExam={startExam}
             onClearHistory={handleClearHistory}
+            onViewLeaderboard={() => setScreen('leaderboard')}
           />
         )}
 
@@ -201,6 +319,21 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* Profile & Privacy Settings Modal */}
+      {userProfile && (
+        <ProfileSettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          userProfile={userProfile}
+          onProfileUpdated={(updated) => {
+            setUserProfile(updated);
+            if (userProfile) {
+              calculateBestRank(userProfile.uid);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -24,15 +24,21 @@ import { ISSB_TOPICS } from '../data/questions';
 interface DashboardScreenProps {
   username: string;
   history: ExamHistory[];
+  bestRank?: number | null;
+  isBlocked?: boolean;
   onStartExam: (mode: ExamMode, topicFilter?: string) => void;
   onClearHistory: () => void;
+  onViewLeaderboard?: () => void;
 }
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   username,
   history,
+  bestRank,
+  isBlocked = false,
   onStartExam,
   onClearHistory,
+  onViewLeaderboard,
 }) => {
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'verbal' | 'non-verbal' | 'modes' | 'topics' | 'history'>('verbal');
@@ -160,9 +166,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             <span className="text-xl sm:text-2xl font-black text-teal-300">{avgAccuracy}%</span>
           </div>
 
-          <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 text-left">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">High Accuracy Tests</span>
-            <span className="text-xl sm:text-2xl font-black text-amber-400">{topScoringCount}</span>
+          <div 
+            onClick={onViewLeaderboard}
+            className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 text-left cursor-pointer hover:border-amber-500/40 transition-colors group"
+          >
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1 group-hover:text-amber-300 transition-colors">
+              Best Rank
+            </span>
+            {bestRank ? (
+              <span className="text-xl sm:text-2xl font-black text-amber-400">#{bestRank}</span>
+            ) : totalTests === 0 ? (
+              <span className="text-sm font-bold text-slate-400">No scores yet</span>
+            ) : (
+              <span className="text-sm font-bold text-slate-400">Unranked</span>
+            )}
           </div>
         </div>
       </motion.div>
