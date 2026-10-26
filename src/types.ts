@@ -23,6 +23,7 @@ export interface Question {
 
 export type ExamMode = 
   | 'verbal-set-1' 
+  | 'verbal-set-2'
   | 'verbal-100' 
   | 'non-verbal-set-1'
   | 'non-verbal-50'

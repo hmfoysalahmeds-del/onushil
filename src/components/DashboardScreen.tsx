@@ -68,7 +68,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-              Cadet <span className="text-emerald-400">{username}</span>, Choose Your Exam
+              Candidate <span className="text-emerald-400">{username}</span>, Choose Your Exam
             </h1>
 
             <p className="text-slate-400 text-sm sm:text-base max-w-2xl leading-relaxed">
@@ -94,15 +94,32 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onStartExam('verbal-set-1')}
-              className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black px-6 py-4 rounded-2xl shadow-xl shadow-emerald-950/70 transition-all flex items-center justify-between gap-4 text-left cursor-pointer border border-emerald-400/30 group"
+              className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black px-6 py-3.5 rounded-2xl shadow-xl shadow-emerald-950/70 transition-all flex items-center justify-between gap-4 text-left cursor-pointer border border-emerald-400/30 group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                  <Play className="w-5 h-5 fill-current text-white group-hover:scale-110 transition-transform" />
+                <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+                  <Play className="w-4 h-4 fill-current text-white group-hover:scale-110 transition-transform" />
                 </div>
                 <div>
-                  <span className="block text-sm sm:text-base font-black leading-tight">Start Verbal Set 1</span>
-                  <span className="block text-[11px] font-semibold text-emerald-100 uppercase tracking-wider">100 Questions • 30 Min</span>
+                  <span className="block text-sm font-black leading-tight">Start Verbal Set 1 (Set-A)</span>
+                  <span className="block text-[10px] font-semibold text-emerald-100 uppercase tracking-wider">100 Q • 30 Min</span>
+                </div>
+              </div>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onStartExam('verbal-set-2')}
+              className="bg-slate-800 hover:bg-slate-750 text-white font-black px-6 py-3.5 rounded-2xl transition-all border border-teal-500/40 hover:border-teal-400 shadow-lg flex items-center justify-between gap-4 text-left cursor-pointer group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
+                  <Play className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
+                </div>
+                <div>
+                  <span className="block text-sm font-black leading-tight">Start Verbal Set 2 (Set-B)</span>
+                  <span className="block text-[10px] font-semibold text-teal-300 uppercase tracking-wider">100 Q • 30 Min</span>
                 </div>
               </div>
             </motion.button>
@@ -111,22 +128,22 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onStartExam('non-verbal-set-1')}
-              className="bg-slate-800 hover:bg-slate-750 text-white font-black px-6 py-4 rounded-2xl transition-all border border-amber-500/40 hover:border-amber-400 shadow-lg flex items-center justify-between gap-4 text-left cursor-pointer group"
+              className="bg-slate-800 hover:bg-slate-750 text-white font-black px-6 py-3.5 rounded-2xl transition-all border border-amber-500/40 hover:border-amber-400 shadow-lg flex items-center justify-between gap-4 text-left cursor-pointer group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                  <Shapes className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                  <Shapes className="w-4 h-4 group-hover:scale-110 transition-transform" />
                 </div>
                 <div>
-                  <span className="block text-sm sm:text-base font-black leading-tight">Start Non-Verbal Set 1</span>
-                  <span className="block text-[11px] font-semibold text-amber-400 uppercase tracking-wider">38 Questions • 26 Min</span>
+                  <span className="block text-sm font-black leading-tight">Start Non-Verbal Set 1</span>
+                  <span className="block text-[10px] font-semibold text-amber-400 uppercase tracking-wider">38 Q • 26 Min</span>
                 </div>
               </div>
             </motion.button>
           </div>
         </div>
 
-        {/* Quick Cadet Stats Row */}
+        {/* Quick Candidate Stats Row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-800/80">
           <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 text-left">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Drills Completed</span>
@@ -215,11 +232,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
       {/* TAB 1: VERBAL IQ TESTS */}
       {activeTab === 'verbal' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Card 1: ISSB-style Verbal MCQ Set 1 (Set-A) */}
-          <div className="bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xl relative overflow-hidden group hover:border-emerald-500 transition-colors">
+          <div className="bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-6 flex flex-col justify-between space-y-6 shadow-xl relative overflow-hidden group hover:border-emerald-500 transition-colors">
             <div className="absolute top-0 right-0 bg-emerald-500 text-slate-950 font-black text-[10px] uppercase tracking-wider px-3.5 py-1.5 rounded-bl-xl shadow">
-              ISSB-style Verbal Set-A
+              ISSB-style Set-A
             </div>
 
             <div className="space-y-4 text-left">
@@ -227,47 +244,90 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
                 <Shield className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-black text-white">Verbal MCQ Set 1 (Set-A)</h3>
-                <span className="text-xs font-bold text-emerald-400">100 Questions • 30 Minutes Time-Locked</span>
+                <h3 className="text-lg font-black text-white">Verbal MCQ Set 1 (Set-A)</h3>
+                <span className="text-xs font-bold text-emerald-400">100 Questions • 30 Minutes</span>
               </div>
               <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                The authentic 100-question verbal test transcribed directly from ISSB candidate examination papers. Includes 5 options, (a) to (e), jumbled letters (Cricket, Hawk, Television, Winter, etc.), number and letter series, analogies, defense ranks, and odd man out.
+                The authentic 100-question verbal test transcribed directly from ISSB candidate examination papers. Includes 5 options, (a) to (e), jumbled letters, number & letter series, analogies, defense ranks, and odd man out.
               </p>
 
               <div className="space-y-2 pt-2 border-t border-slate-800 text-xs text-slate-400">
                 <div className="flex items-center justify-between">
                   <span>Questions Count:</span>
-                  <strong className="text-white">100 Questions (5 Options each)</strong>
+                  <strong className="text-white">100 Questions (5 Options)</strong>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Time Allowed:</span>
-                  <strong className="text-emerald-400">30:00 Minutes (Time-Locked)</strong>
+                  <strong className="text-emerald-400">30:00 Min (Time-Locked)</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Pace Requirement:</span>
-                  <strong className="text-slate-300">18 Seconds / Question</strong>
+                  <span>Pace Target:</span>
+                  <strong className="text-slate-300">18 Seconds / Item</strong>
                 </div>
               </div>
             </div>
 
             <button
               onClick={() => onStartExam('verbal-set-1')}
-              className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm cursor-pointer shadow-lg shadow-emerald-950/40"
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm cursor-pointer shadow-lg shadow-emerald-950/40"
             >
               <Play className="w-4 h-4 fill-current" />
-              <span>Start Verbal Set 1 (100 Q • 30 Min)</span>
+              <span>Start Verbal Set 1 (Set-A)</span>
             </button>
           </div>
 
-          {/* Card 2: Unlimited Verbal IQ Generator */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xl hover:border-slate-700 transition-colors">
+          {/* Card 2: ISSB-style Verbal MCQ Set 2 (Set-B) */}
+          <div className="bg-slate-900 border-2 border-teal-500/40 rounded-3xl p-6 flex flex-col justify-between space-y-6 shadow-xl relative overflow-hidden group hover:border-teal-400 transition-colors">
+            <div className="absolute top-0 right-0 bg-teal-500 text-slate-950 font-black text-[10px] uppercase tracking-wider px-3.5 py-1.5 rounded-bl-xl shadow">
+              ISSB-style Set-B
+            </div>
+
             <div className="space-y-4 text-left">
               <div className="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-400">
+                <BookOpen className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white">Verbal MCQ Set 2 (Set-B)</h3>
+                <span className="text-xs font-bold text-teal-400">100 Questions • 30 Minutes</span>
+              </div>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                Authentic 100-question Verbal Intelligence Set-B with official solution key. Includes jumbled anagrams (Watch, Volga, Parker, Budapest, Melbourne), antonyms, interleaved numerical series, and military rank hierarchies.
+              </p>
+
+              <div className="space-y-2 pt-2 border-t border-slate-800 text-xs text-slate-400">
+                <div className="flex items-center justify-between">
+                  <span>Questions Count:</span>
+                  <strong className="text-white">100 Questions (5 Options)</strong>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Time Allowed:</span>
+                  <strong className="text-teal-400">30:00 Min (Time-Locked)</strong>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Pace Target:</span>
+                  <strong className="text-slate-300">18 Seconds / Item</strong>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => onStartExam('verbal-set-2')}
+              className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-black py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm cursor-pointer shadow-lg shadow-teal-950/40"
+            >
+              <Play className="w-4 h-4 fill-current" />
+              <span>Start Verbal Set 2 (Set-B)</span>
+            </button>
+          </div>
+
+          {/* Card 3: Unlimited Verbal IQ Generator */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between space-y-6 shadow-xl hover:border-slate-700 transition-colors">
+            <div className="space-y-4 text-left">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
                 <Sparkles className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-black text-white">Unlimited Verbal IQ Engine</h3>
-                <span className="text-xs font-bold text-teal-400">100 Questions • 30 Minutes</span>
+                <h3 className="text-lg font-black text-white">Unlimited Verbal IQ Engine</h3>
+                <span className="text-xs font-bold text-indigo-400">100 Questions • 30 Minutes</span>
               </div>
               <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
                 Generate an infinite pool of unique 100-question verbal drill sets. Procedurally generated series, cryptic coding puzzles, kinship relations, and situational logical deductions to build reflex speed under pressure.
@@ -280,7 +340,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Time Allowed:</span>
-                  <strong className="text-teal-400">30:00 Minutes (Time-Locked)</strong>
+                  <strong className="text-indigo-400">30:00 Minutes (Time-Locked)</strong>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Engine:</span>
@@ -291,9 +351,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
             <button
               onClick={() => onStartExam('verbal-100')}
-              className="w-full bg-slate-800 hover:bg-slate-750 text-white font-black py-4 rounded-xl transition-all border border-slate-700 flex items-center justify-center gap-2 text-sm cursor-pointer"
+              className="w-full bg-slate-800 hover:bg-slate-750 text-white font-black py-3.5 rounded-xl transition-all border border-slate-700 flex items-center justify-center gap-2 text-sm cursor-pointer"
             >
-              <Play className="w-4 h-4 fill-current text-teal-400" />
+              <Play className="w-4 h-4 fill-current text-indigo-400" />
               <span>Launch Unlimited Verbal Drill</span>
             </button>
           </div>

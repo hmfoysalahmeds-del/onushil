@@ -1,8 +1,9 @@
 import { Question, ExamMode } from '../types';
 import { verbalSet1 } from './verbalSet1';
+import { verbalSet2 } from './verbalSet2';
 import { nonVerbal50Questions, nonVerbal38Questions } from './nonVerbalSet';
 
-export { verbalSet1, nonVerbal50Questions, nonVerbal38Questions };
+export { verbalSet1, verbalSet2, nonVerbal50Questions, nonVerbal38Questions };
 
 // Curated authentic ISSB IQ Question Bank (Verbal & Non-Verbal)
 export const curatedQuestionBank: Question[] = [
@@ -260,7 +261,7 @@ export const curatedQuestionBank: Question[] = [
     category: 'verbal',
     topic: 'Direction & Orientation',
     difficulty: 'medium',
-    question: 'A cadet marches 10 meters North, turns right and walks 6 meters, then turns South and walks 10 meters. How far and in which direction is he from his starting point?',
+    question: 'A candidate marches 10 meters North, turns right and walks 6 meters, then turns South and walks 10 meters. How far and in which direction is he from his starting point?',
     options: ['6 meters East', '6 meters West', '10 meters East', '16 meters North'],
     correctAnswerIndex: 0,
     explanation: 'North 10m and South 10m cancel out vertical displacement. The 6m right turn moves him East. Therefore, he is 6m East of the origin.'
@@ -762,22 +763,38 @@ export function generateProceduralIQQuestion(id: number): Question {
   }
 }
 
+// Fisher-Yates Shuffle helper to randomize questions on every practice attempt
+function shuffleQuestions(list: Question[]): Question[] {
+  const arr = [...list];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.map((q, idx) => ({ ...q, id: idx + 1 }));
+}
+
 // Master Exam Generator: Produces questions for ISSB tests
-// Handles ISSB-style Verbal Set 1 (100 items), Non-Verbal IQ (50 items in 26 min), and procedural unlimited modes
+// Handles ISSB-style Verbal Set 1 (100 items), Verbal Set 2 (100 items), Non-Verbal IQ (50 items in 26 min), and procedural unlimited modes
+// Questions are shuffled on every attempt for randomized exam experience
 export function generateISSBExam(mode: ExamMode = 'verbal-set-1', topicFilter?: string): Question[] {
-  // 1. Verbal Set 1 (100 questions)
+  // 1. Verbal Set 1 (100 questions, shuffled)
   if (mode === 'verbal-set-1') {
-    return verbalSet1.map((q, idx) => ({ ...q, id: idx + 1 }));
+    return shuffleQuestions(verbalSet1);
   }
 
-  // 2. Non-Verbal IQ (50 questions, 26 minutes time-lock)
+  // 2. Verbal Set 2 (100 questions, shuffled)
+  if (mode === 'verbal-set-2') {
+    return shuffleQuestions(verbalSet2);
+  }
+
+  // 3. Non-Verbal IQ (50 questions, 26 minutes time-lock, shuffled)
   if (mode === 'non-verbal-50') {
-    return nonVerbal50Questions.map((q, idx) => ({ ...q, id: idx + 1 }));
+    return shuffleQuestions(nonVerbal50Questions);
   }
 
-  // 3. Authentic Non-Verbal Set 1 (Set-A: 38 questions)
+  // 4. Authentic Non-Verbal Set 1 (Set-A: 38 questions, shuffled)
   if (mode === 'non-verbal-set-1' || mode === 'non-verbal-38') {
-    return nonVerbal38Questions.map((q, idx) => ({ ...q, id: idx + 1 }));
+    return shuffleQuestions(nonVerbal38Questions);
   }
 
   let targetCount = 100;
@@ -789,17 +806,17 @@ export function generateISSBExam(mode: ExamMode = 'verbal-set-1', topicFilter?: 
 
   if (mode === 'verbal-100') {
     // Pure verbal questions pool
-    pool = [...verbalSet1, ...curatedQuestionBank.filter(q => q.category === 'verbal')];
+    pool = [...verbalSet1, ...verbalSet2, ...curatedQuestionBank.filter(q => q.category === 'verbal')];
   } else {
-    pool = [...verbalSet1, ...curatedQuestionBank, ...nonVerbal38Questions];
+    pool = [...verbalSet1, ...verbalSet2, ...curatedQuestionBank, ...nonVerbal38Questions];
   }
 
   if (topicFilter && topicFilter !== 'all') {
     pool = pool.filter(q => q.topic.toLowerCase().includes(topicFilter.toLowerCase()) || q.category === topicFilter);
   }
 
-  // Shuffle pool
-  const shuffledCurated = [...pool].sort(() => 0.5 - Math.random());
+  // Shuffle pool with Fisher-Yates
+  const shuffledCurated = shuffleQuestions(pool);
   const selected: Question[] = [];
 
   // Take available from curated
