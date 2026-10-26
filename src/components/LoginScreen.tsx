@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Shield, Target, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
-import { signInWithGoogle } from '../lib/firebase';
+import { Shield, Target, CheckCircle2, AlertCircle, RefreshCw, ExternalLink } from 'lucide-react';
+import { signInWithGoogle, signInWithGoogleRedirect } from '../lib/firebase';
 
 interface LoginScreenProps {
   onLoginSuccess: (user: any) => void;
@@ -10,11 +10,13 @@ interface LoginScreenProps {
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isPopupBlocked, setIsPopupBlocked] = useState(false);
 
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
       setError(null);
+      setIsPopupBlocked(false);
       const user = await signInWithGoogle();
       onLoginSuccess(user);
     } catch (err: any) {
@@ -23,12 +25,31 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         setError('Sign-in was cancelled. Click "Continue with Google" whenever you are ready.');
       } else if (err.code === 'auth/popup-blocked') {
         console.warn('Popup was blocked by the browser.');
-        setError('Sign-in popup was blocked by your browser. Please allow popups for this site and try again.');
+        setIsPopupBlocked(true);
+        setError('Sign-in popup was blocked by your browser. You can allow popups in your browser or use "Sign in with Page Redirect" below.');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        console.warn('Domain not authorized in Firebase.');
+        setError('Domain not authorized: Please add your domain (e.g. b20issb.vercel.app) to Firebase Console > Authentication > Settings > Authorized domains.');
       } else {
         console.error('Google Sign-In Error:', err);
         setError(err.message || 'Failed to sign in with Google. Please try again.');
       }
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleRedirect = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      await signInWithGoogleRedirect();
+    } catch (err: any) {
+      if (err.code === 'auth/unauthorized-domain') {
+        setError('Domain not authorized: Please add your domain (e.g. b20issb.vercel.app) to Firebase Console > Authentication > Settings > Authorized domains.');
+      } else {
+        setError(err.message || 'Failed to redirect to Google sign-in.');
+      }
       setLoading(false);
     }
   };
@@ -79,14 +100,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
                 <span className="font-semibold leading-relaxed">{error}</span>
               </div>
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                className="w-full bg-rose-600/30 hover:bg-rose-600/50 text-white font-bold py-2 px-3 rounded-xl border border-rose-500/40 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Try again</span>
-              </button>
+              <div className="space-y-2 pt-1">
+                {isPopupBlocked && (
+                  <button
+                    type="button"
+                    onClick={handleGoogleRedirect}
+                    disabled={loading}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Sign in with Redirect (No popup)</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                  className="w-full bg-rose-600/30 hover:bg-rose-600/50 text-white font-bold py-2 px-3 rounded-xl border border-rose-500/40 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Try popup again</span>
+                </button>
+              </div>
             </motion.div>
           )}
 

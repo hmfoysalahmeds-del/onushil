@@ -3,6 +3,8 @@ import {
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   User as FirebaseUser 
 } from 'firebase/auth';
@@ -96,6 +98,26 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 export async function signInWithGoogle(): Promise<FirebaseUser> {
   const result = await signInWithPopup(auth, googleProvider);
   return result.user;
+}
+
+/**
+ * Sign in using Google Redirect (useful if browser blocks popups on custom domains)
+ */
+export async function signInWithGoogleRedirect(): Promise<void> {
+  await signInWithRedirect(auth, googleProvider);
+}
+
+/**
+ * Check if user returned from a redirect sign-in
+ */
+export async function checkRedirectResult(): Promise<FirebaseUser | null> {
+  try {
+    const result = await getRedirectResult(auth);
+    return result?.user || null;
+  } catch (error) {
+    console.warn('Redirect result check:', error);
+    return null;
+  }
 }
 
 /**
