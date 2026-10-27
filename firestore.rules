@@ -63,6 +63,35 @@ service cloud.firestore {
              (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 60));
     }
 
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'hmfoysalahmeds@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isValidWatWord(data) {
+      return data.keys().hasAll(['word', 'active']) &&
+             data.word is string && data.word.size() > 0 && data.word.size() <= 100 &&
+             data.active is bool &&
+             (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 60));
+    }
+
+    function isValidWatAttempt(data) {
+      return data.keys().hasAll(['id', 'uid', 'mode', 'date', 'words', 'completed']) &&
+             data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() <= 128 &&
+             data.uid == request.auth.uid &&
+             data.mode in ['type', 'paper'] &&
+             data.date is string && data.date.size() <= 60 &&
+             data.words is list && data.words.size() <= 80 &&
+             data.completed is bool &&
+             (!('sentences' in data) || (data.sentences is list && data.sentences.size() <= 80)) &&
+             (!('answeredCount' in data) || (data.answeredCount is number && data.answeredCount >= 0 && data.answeredCount <= 80)) &&
+             (!('totalWords' in data) || (data.totalWords is number && data.totalWords <= 80));
+    }
+
     // User profile document
     match /users/{userId} {
       allow get: if isValidId(userId) && isOwner(userId);
@@ -71,13 +100,13 @@ service cloud.firestore {
       allow create: if isValidId(userId) &&
                        isOwner(userId) &&
                        isValidUser(request.resource.data) &&
-                       request.resource.data.role == 'student' &&
+                       (request.resource.data.role == 'student' || (request.resource.data.role == 'admin' && request.auth.token.email == 'hmfoysalahmeds@gmail.com')) &&
                        request.resource.data.blocked == false;
 
       allow update: if isValidId(userId) &&
                        isOwner(userId) &&
                        isValidUser(request.resource.data) &&
-                       request.resource.data.role == resource.data.role &&
+                       (request.resource.data.role == resource.data.role || (request.resource.data.role == 'admin' && request.auth.token.email == 'hmfoysalahmeds@gmail.com')) &&
                        request.resource.data.blocked == resource.data.blocked;
 
       allow delete: if false;
@@ -93,6 +122,18 @@ service cloud.firestore {
 
         allow update, delete: if isValidId(userId) && isOwner(userId);
       }
+
+      // Candidate private Word Association Test history
+      match /watHistory/{attemptId} {
+        allow get, list: if isValidId(userId) && isOwner(userId);
+
+        allow create, update: if isValidId(userId) &&
+                                 isOwner(userId) &&
+                                 isNotBlocked(userId) &&
+                                 isValidWatAttempt(request.resource.data);
+
+        allow delete: if isValidId(userId) && isOwner(userId);
+      }
     }
 
     // Public / Protected Leaderboard collection
@@ -106,6 +147,13 @@ service cloud.firestore {
 
       // Immutable & undeletable by clients
       allow update, delete: if false;
+    }
+
+    // Word Association Test Word Bank
+    match /watWords/{wordId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn() && isAdmin() && isValidWatWord(request.resource.data);
+      allow delete: if isSignedIn() && isAdmin();
     }
   }
 }

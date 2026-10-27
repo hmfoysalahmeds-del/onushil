@@ -20,10 +20,16 @@ import {
 interface LandingPageProps {
   onStartPracticing: () => void;
   onStartNonVerbal?: () => void;
+  onStartWat?: () => void;
   username: string | null;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onStartPracticing, onStartNonVerbal, username }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ 
+  onStartPracticing, 
+  onStartNonVerbal, 
+  onStartWat, 
+  username 
+}) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   
   // Interactive mini preview on landing page
@@ -301,22 +307,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartPracticing, onS
             </div>
           </div>
 
-          {/* Card 5: WAT */}
-          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 text-left space-y-5 shadow-xl select-none">
-            <div className="w-14 h-14 bg-purple-500/15 text-purple-400 border border-purple-500/30 rounded-2xl flex items-center justify-center">
-              <Zap className="w-7 h-7" />
+          {/* Card 5: WAT (Active) */}
+          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 text-left space-y-5 hover:border-purple-500/50 transition-all shadow-xl flex flex-col justify-between">
+            <div className="space-y-5">
+              <div className="w-14 h-14 bg-purple-500/15 text-purple-400 border border-purple-500/30 rounded-2xl flex items-center justify-center">
+                <Zap className="w-7 h-7" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-black text-white tracking-tight">
+                  WAT (80 words • 10 sec each)
+                </h3>
+                <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                  Word Association Test drill displaying 80 words consecutively for 10 seconds each to practice immediate sentence construction under pressure.
+                </p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-black text-white tracking-tight">
-                WAT (80 words, 10 seconds each)
-              </h3>
-              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                Word Association Test drill displaying 80 words consecutively for 10 seconds each to practice immediate sentence construction under pressure.
-              </p>
-            </div>
-            <div className="text-xs font-bold text-slate-500 flex items-center gap-1 pt-2">
-              Coming soon
-            </div>
+            <button
+              onClick={onStartWat || onStartPracticing}
+              className="w-full bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 hover:border-purple-400 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer"
+            >
+              <Play className="w-4 h-4 fill-current" />
+              <span>Start WAT</span>
+            </button>
           </div>
 
         </div>

@@ -81,3 +81,24 @@ export interface LeaderboardEntry {
 }
 
 export type LeaderboardPeriod = 'week' | 'month' | 'all';
+
+export type WatMode = 'type' | 'paper';
+
+export interface WatWord {
+  id?: string;
+  word: string;
+  active: boolean;
+  createdAt?: string;
+}
+
+export interface WatAttempt {
+  id: string;
+  uid: string;
+  mode: WatMode;
+  date: string;
+  words: string[];
+  sentences: string[];
+  answeredCount: number;
+  completed: boolean;
+  totalWords: number;
+}

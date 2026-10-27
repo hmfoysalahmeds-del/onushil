@@ -18,7 +18,7 @@ import {
   HelpCircle,
   Shapes
 } from 'lucide-react';
-import { ExamHistory, ExamMode } from '../types';
+import { ExamHistory, ExamMode, WatAttempt } from '../types';
 import { ISSB_TOPICS } from '../data/questions';
 
 interface DashboardScreenProps {
@@ -29,6 +29,11 @@ interface DashboardScreenProps {
   onStartExam: (mode: ExamMode, topicFilter?: string) => void;
   onClearHistory: () => void;
   onViewLeaderboard?: () => void;
+  onStartWat: () => void;
+  watHistory?: WatAttempt[];
+  onViewWatReview?: (attempt: WatAttempt) => void;
+  isAdmin?: boolean;
+  onOpenWatAdmin?: () => void;
 }
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({
@@ -39,9 +44,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   onStartExam,
   onClearHistory,
   onViewLeaderboard,
+  onStartWat,
+  watHistory = [],
+  onViewWatReview,
+  isAdmin = false,
+  onOpenWatAdmin,
 }) => {
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
-  const [activeTab, setActiveTab] = useState<'verbal' | 'non-verbal' | 'modes' | 'topics' | 'history'>('verbal');
+  const [activeTab, setActiveTab] = useState<'verbal' | 'non-verbal' | 'wat' | 'modes' | 'topics' | 'history'>('verbal');
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'iq' | 'wat'>('all');
 
   // Compute Cadet stats
   const totalTests = history.length;

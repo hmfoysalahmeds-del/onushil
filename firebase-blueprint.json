@@ -192,6 +192,79 @@
         }
       },
       "required": ["uid", "displayName", "testType", "score", "total", "accuracy", "timeTaken", "hidden"]
+    },
+    "WatWord": {
+      "title": "WatWord",
+      "description": "Word item in the Word Association Test bank",
+      "type": "object",
+      "properties": {
+        "word": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Prompt word"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the word is available for random test selection"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when added"
+        }
+      },
+      "required": ["word", "active"]
+    },
+    "WatAttempt": {
+      "title": "WatAttempt",
+      "description": "Candidate Word Association Test session record",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Unique WAT attempt ID"
+        },
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Candidate UID"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["type", "paper"],
+          "description": "Test mode"
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of attempt"
+        },
+        "words": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of 80 words in order shown"
+        },
+        "sentences": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of 80 responses corresponding to words"
+        },
+        "answeredCount": {
+          "type": "number",
+          "description": "Count of words answered"
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Whether attempt completed all 80 words"
+        },
+        "totalWords": {
+          "type": "number",
+          "description": "Total words in attempt (80)"
+        }
+      },
+      "required": ["id", "uid", "mode", "date", "words", "completed"]
     }
   },
   "firestore": {
@@ -203,9 +276,17 @@
       "schema": "ExamHistory",
       "description": "Candidate private test results history. Only readable and writable by the user."
     },
+    "/users/{userId}/watHistory/{attemptId}": {
+      "schema": "WatAttempt",
+      "description": "Candidate private Word Association Test history. Only readable and writable by the user."
+    },
     "/leaderboard/{entryId}": {
       "schema": "LeaderboardEntry",
       "description": "Immutable leaderboard records for completed tests. Readable by logged-in users; records with hidden: true only readable by the author."
+    },
+    "/watWords/{wordId}": {
+      "schema": "WatWord",
+      "description": "Word bank for WAT module. Read-only for candidates, writable by admins."
     }
   }
 }

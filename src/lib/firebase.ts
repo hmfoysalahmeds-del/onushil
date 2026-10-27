@@ -14,6 +14,7 @@ import {
   getDoc, 
   setDoc, 
   updateDoc, 
+  deleteDoc,
   collection, 
   query, 
   where, 
@@ -22,7 +23,7 @@ import {
   addDoc
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { UserProfile, ExamHistory, LeaderboardEntry } from '../types';
+import { UserProfile, ExamHistory, LeaderboardEntry, WatWord, WatAttempt } from '../types';
 
 // Initialize Firebase App
 const app = initializeApp(firebaseConfig);
@@ -143,6 +144,7 @@ export async function syncUserProfile(user: FirebaseUser): Promise<UserProfile> 
 
     if (docSnap.exists()) {
       const existing = docSnap.data() as UserProfile;
+      const isAdmin = user.email === 'hmfoysalahmeds@gmail.com' || existing.role === 'admin';
       // Update lastLoginAt on every login
       const updatedProfile: UserProfile = {
         ...existing,
@@ -150,6 +152,7 @@ export async function syncUserProfile(user: FirebaseUser): Promise<UserProfile> 
         email: user.email || existing.email,
         photo: user.photoURL || existing.photo || '',
         displayName: existing.displayName || firstName,
+        role: isAdmin ? 'admin' : (existing.role || 'student'),
         lastLoginAt: now,
       };
 
@@ -157,11 +160,13 @@ export async function syncUserProfile(user: FirebaseUser): Promise<UserProfile> 
         name: updatedProfile.name,
         email: updatedProfile.email,
         photo: updatedProfile.photo,
+        role: updatedProfile.role,
         lastLoginAt: now,
       });
 
       return updatedProfile;
     } else {
+      const isAdmin = user.email === 'hmfoysalahmeds@gmail.com';
       // Create new user profile
       const newProfile: UserProfile = {
         uid: user.uid,
@@ -170,7 +175,7 @@ export async function syncUserProfile(user: FirebaseUser): Promise<UserProfile> 
         photo: user.photoURL || '',
         displayName: firstName,
         showOnLeaderboard: true,
-        role: 'student',
+        role: isAdmin ? 'admin' : 'student',
         blocked: false,
         createdAt: now,
         lastLoginAt: now,
@@ -331,4 +336,170 @@ export async function fetchLeaderboardEntries(
     return [];
   }
 }
+
+/**
+ * ============================================================
+ * WAT (Word Association Test) Firestore Operations
+ * ============================================================
+ */
+
+/**
+ * Fetch all active WAT words from Firestore bank
+ */
+export async function fetchActiveWatWords(): Promise<WatWord[]> {
+  const path = 'watWords';
+  try {
+    const col = collection(db, path);
+    const q = query(col, where('active', '==', true));
+    const snap = await getDocs(q);
+    const words: WatWord[] = [];
+    snap.forEach((d) => {
+      const data = d.data() as WatWord;
+      words.push({ ...data, id: d.id });
+    });
+    return words;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+    return [];
+  }
+}
+
+/**
+ * Fetch all words (both active and inactive) for Admin management
+ */
+export async function fetchAllWatWordsForAdmin(): Promise<WatWord[]> {
+  const path = 'watWords';
+  try {
+    const col = collection(db, path);
+    const snap = await getDocs(col);
+    const words: WatWord[] = [];
+    snap.forEach((d) => {
+      const data = d.data() as WatWord;
+      words.push({ ...data, id: d.id });
+    });
+    return words.sort((a, b) => a.word.localeCompare(b.word));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+    return [];
+  }
+}
+
+/**
+ * Add a single word to the WAT bank
+ */
+export async function addWatWord(wordText: string, active = true): Promise<WatWord> {
+  const trimmed = wordText.trim();
+  const path = 'watWords';
+  try {
+    const newWord: Omit<WatWord, 'id'> = {
+      word: trimmed,
+      active,
+      createdAt: new Date().toISOString(),
+    };
+    const docRef = await addDoc(collection(db, path), newWord);
+    return { ...newWord, id: docRef.id };
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, path);
+    throw error;
+  }
+}
+
+/**
+ * Update word status or text
+ */
+export async function updateWatWord(id: string, updates: Partial<WatWord>): Promise<void> {
+  const path = `watWords/${id}`;
+  try {
+    const wordRef = doc(db, 'watWords', id);
+    await updateDoc(wordRef, updates);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+    throw error;
+  }
+}
+
+/**
+ * Delete a word from the WAT bank
+ */
+export async function deleteWatWord(id: string): Promise<void> {
+  const path = `watWords/${id}`;
+  try {
+    const wordRef = doc(db, 'watWords', id);
+    await deleteDoc(wordRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+    throw error;
+  }
+}
+
+/**
+ * Bulk import words: trims, ignores empty lines, skips duplicates (case-insensitive)
+ */
+export async function bulkImportWatWords(rawText: string): Promise<{ added: number; skipped: number }> {
+  const lines = rawText.split('\n');
+  const existingWords = await fetchAllWatWordsForAdmin();
+  const existingSet = new Set(existingWords.map(w => w.word.trim().toLowerCase()));
+
+  const toAdd: string[] = [];
+  let skipped = 0;
+
+  for (const line of lines) {
+    // Clean potential numbered prefixes like "1. Peep" -> "Peep"
+    const cleaned = line.replace(/^\d+[\.\)]\s*/, '').trim();
+    if (!cleaned) continue;
+    const lower = cleaned.toLowerCase();
+    if (existingSet.has(lower) || toAdd.some(w => w.toLowerCase() === lower)) {
+      skipped++;
+    } else {
+      toAdd.push(cleaned);
+      existingSet.add(lower);
+    }
+  }
+
+  let added = 0;
+  for (const word of toAdd) {
+    try {
+      await addWatWord(word, true);
+      added++;
+    } catch (e) {
+      console.warn('Failed to insert word in bulk import:', word, e);
+    }
+  }
+
+  return { added, skipped };
+}
+
+/**
+ * Save candidate's WAT attempt to their private history
+ */
+export async function saveWatAttempt(attempt: WatAttempt): Promise<void> {
+  const path = `users/${attempt.uid}/watHistory/${attempt.id}`;
+  try {
+    const attemptDoc = doc(db, 'users', attempt.uid, 'watHistory', attempt.id);
+    await setDoc(attemptDoc, attempt);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, path);
+    throw error;
+  }
+}
+
+/**
+ * Fetch candidate's WAT history
+ */
+export async function fetchUserWatHistory(uid: string): Promise<WatAttempt[]> {
+  const path = `users/${uid}/watHistory`;
+  try {
+    const col = collection(db, 'users', uid, 'watHistory');
+    const snap = await getDocs(col);
+    const list: WatAttempt[] = [];
+    snap.forEach((d) => {
+      list.push(d.data() as WatAttempt);
+    });
+    return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+    return [];
+  }
+}
+
 
