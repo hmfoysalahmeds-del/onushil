@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { Navbar } from './components/Navbar';
+import { Navbar, ScreenType } from './components/Navbar';
 import { LandingPage } from './components/LandingPage';
 import { LoginScreen } from './components/LoginScreen';
 import { DashboardScreen } from './components/DashboardScreen';
@@ -8,23 +8,36 @@ import { QuizScreen } from './components/QuizScreen';
 import { ResultsScreen } from './components/ResultsScreen';
 import { LeaderboardScreen } from './components/LeaderboardScreen';
 import { ProfileSettingsModal } from './components/ProfileSettingsModal';
+import { WatInstructionsScreen } from './components/WatInstructionsScreen';
+import { WatTestScreen } from './components/WatTestScreen';
+import { WatReviewScreen } from './components/WatReviewScreen';
+import { WatAdminModal } from './components/WatAdminModal';
 import { generateISSBExam } from './data/questions';
-import { Question, ExamHistory, ExamMode, UserProfile } from './types';
+import { Question, ExamHistory, ExamMode, UserProfile, WatAttempt, WatMode } from './types';
 import { 
   auth, 
   syncUserProfile, 
   logOutUser, 
   fetchUserHistory, 
   saveExamResultToFirestore,
-  fetchLeaderboardEntries 
+  fetchLeaderboardEntries,
+  fetchUserWatHistory,
+  saveWatAttempt
 } from './lib/firebase';
 
 export default function App() {
-  const [screen, setScreen] = useState<'landing' | 'login' | 'dashboard' | 'quiz' | 'results' | 'leaderboard'>('landing');
+  const [screen, setScreen] = useState<ScreenType>('landing');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [history, setHistory] = useState<ExamHistory[]>([]);
+  const [watHistory, setWatHistory] = useState<WatAttempt[]>([]);
   const [bestRank, setBestRank] = useState<number | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isWatAdminOpen, setIsWatAdminOpen] = useState(false);
+
+  // Active WAT test states
+  const [watTestWords, setWatTestWords] = useState<string[]>([]);
+  const [watTestMode, setWatTestMode] = useState<WatMode>('type');
+  const [activeWatAttempt, setActiveWatAttempt] = useState<WatAttempt | null>(null);
   
   // Current test state
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
@@ -83,9 +96,13 @@ export default function App() {
           const profile = await syncUserProfile(firebaseUser);
           setUserProfile(profile);
 
-          // Fetch cloud history for this user
-          const cloudHistory = await fetchUserHistory(firebaseUser.uid);
+          // Fetch cloud history & WAT history concurrently
+          const [cloudHistory, userWatHistory] = await Promise.all([
+            fetchUserHistory(firebaseUser.uid),
+            fetchUserWatHistory(firebaseUser.uid)
+          ]);
           setHistory(cloudHistory);
+          setWatHistory(userWatHistory);
 
           // Compute user's best rank
           await calculateBestRank(firebaseUser.uid);
@@ -98,6 +115,8 @@ export default function App() {
       } else {
         setUserProfile(null);
         setHistory([]);
+        setWatHistory([]);
+        setActiveWatAttempt(null);
         setBestRank(null);
       }
     });
@@ -109,8 +128,12 @@ export default function App() {
     try {
       const profile = await syncUserProfile(firebaseUser);
       setUserProfile(profile);
-      const cloudHistory = await fetchUserHistory(firebaseUser.uid);
+      const [cloudHistory, userWatHistory] = await Promise.all([
+        fetchUserHistory(firebaseUser.uid),
+        fetchUserWatHistory(firebaseUser.uid)
+      ]);
       setHistory(cloudHistory);
+      setWatHistory(userWatHistory);
       await calculateBestRank(firebaseUser.uid);
       setScreen('dashboard');
     } catch (e) {
@@ -127,6 +150,8 @@ export default function App() {
     }
     setUserProfile(null);
     setHistory([]);
+    setWatHistory([]);
+    setActiveWatAttempt(null);
     setBestRank(null);
     setScreen('landing');
   };
@@ -241,6 +266,42 @@ export default function App() {
     setScreen('results');
   };
 
+  const isAdmin = userProfile ? (userProfile.role === 'admin' || userProfile.email === 'hmfoysalahmeds@gmail.com') : false;
+
+  const handleStartWat = () => {
+    if (!userProfile) {
+      setScreen('login');
+      return;
+    }
+    if (userProfile.blocked) {
+      alert('Your candidate account is currently blocked from taking tests. Please contact administration.');
+      return;
+    }
+    setScreen('wat-instructions');
+  };
+
+  const handleBeginWatTest = (mode: WatMode, selectedWords: string[]) => {
+    setWatTestMode(mode);
+    setWatTestWords(selectedWords);
+    setScreen('wat-test');
+  };
+
+  const handleCompleteWatTest = async (attempt: WatAttempt) => {
+    try {
+      await saveWatAttempt(attempt);
+    } catch (e) {
+      console.error('Failed to save WAT attempt to cloud:', e);
+    }
+    setWatHistory((prev) => [attempt, ...prev]);
+    setActiveWatAttempt(attempt);
+    setScreen('wat-review');
+  };
+
+  const handleViewWatReview = (attempt: WatAttempt) => {
+    setActiveWatAttempt(attempt);
+    setScreen('wat-review');
+  };
+
   return (
     <div className="bg-slate-950 min-h-screen font-sans antialiased text-slate-100 flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
       <Navbar 
@@ -249,6 +310,8 @@ export default function App() {
         onLogout={handleLogout} 
         onNavigate={(targetScreen) => setScreen(targetScreen)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        isAdmin={isAdmin}
+        onOpenWatAdmin={() => setIsWatAdminOpen(true)}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
@@ -268,6 +331,7 @@ export default function App() {
                 setScreen('login');
               }
             }}
+            onStartWat={handleStartWat}
             username={userProfile ? userProfile.name : null}
           />
         )}
@@ -297,6 +361,38 @@ export default function App() {
             onStartExam={startExam}
             onClearHistory={handleClearHistory}
             onViewLeaderboard={() => setScreen('leaderboard')}
+            onStartWat={handleStartWat}
+            watHistory={watHistory}
+            onViewWatReview={handleViewWatReview}
+            isAdmin={isAdmin}
+            onOpenWatAdmin={() => setIsWatAdminOpen(true)}
+          />
+        )}
+
+        {screen === 'wat-instructions' && userProfile && (
+          <WatInstructionsScreen
+            userProfile={userProfile}
+            previousAttempts={watHistory}
+            onStartTest={handleBeginWatTest}
+            onBack={() => setScreen('dashboard')}
+          />
+        )}
+
+        {screen === 'wat-test' && userProfile && (
+          <WatTestScreen
+            userProfile={userProfile}
+            words={watTestWords}
+            mode={watTestMode}
+            onFinish={handleCompleteWatTest}
+            onExitToDashboard={() => setScreen('dashboard')}
+          />
+        )}
+
+        {screen === 'wat-review' && activeWatAttempt && (
+          <WatReviewScreen
+            attempt={activeWatAttempt}
+            onRetry={() => setScreen('wat-instructions')}
+            onBackToDashboard={() => setScreen('dashboard')}
           />
         )}
 
@@ -332,6 +428,14 @@ export default function App() {
               calculateBestRank(userProfile.uid);
             }
           }}
+        />
+      )}
+
+      {/* WAT Admin Word Bank Modal */}
+      {isAdmin && (
+        <WatAdminModal
+          isOpen={isWatAdminOpen}
+          onClose={() => setIsWatAdminOpen(false)}
         />
       )}
     </div>

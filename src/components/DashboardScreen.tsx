@@ -16,7 +16,11 @@ import {
   Sparkles,
   BarChart3,
   HelpCircle,
-  Shapes
+  Shapes,
+  FileText,
+  PenTool,
+  ShieldAlert,
+  History as HistoryIcon
 } from 'lucide-react';
 import { ExamHistory, ExamMode, WatAttempt } from '../types';
 import { ISSB_TOPICS } from '../data/questions';
@@ -219,6 +223,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         >
           <Shapes className="w-4 h-4" />
           <span>Non-Verbal IQ (50 Q • 26 Min)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('wat')}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'wat'
+              ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>WAT (80 Words • 10s)</span>
         </button>
 
         <button
@@ -475,9 +491,115 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         </div>
       )}
 
+      {/* TAB: WORD ASSOCIATION TEST (WAT) */}
+      {activeTab === 'wat' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Primary Action Card */}
+            <div className="lg:col-span-2 bg-slate-900 border-2 border-purple-500/40 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xl relative overflow-hidden group hover:border-purple-500/80 transition-colors">
+              <div className="space-y-5 text-left">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-black uppercase tracking-wider">
+                    <PenTool className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Psychological Battery • 13m 20s</span>
+                  </div>
+                  {isAdmin && onOpenWatAdmin && (
+                    <button
+                      onClick={onOpenWatAdmin}
+                      className="px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-200 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <ShieldAlert className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Admin: Word Bank</span>
+                    </button>
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="text-2xl font-black text-white tracking-tight">
+                    WAT (80 words • 10 sec each)
+                  </h3>
+                  <p className="text-slate-400 text-xs sm:text-sm mt-2 leading-relaxed">
+                    Official ISSB Word Association Test simulation. 80 random active words appear one by one for exactly 10 seconds. Write the first constructive, spontaneous sentence that comes to your mind.
+                  </p>
+                </div>
+
+                {/* Key Specs */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                  <div className="p-3 bg-slate-950/80 rounded-2xl border border-slate-800">
+                    <span className="block text-[10px] uppercase font-bold text-slate-500">Total Words</span>
+                    <span className="text-base font-black text-white">80 Items</span>
+                  </div>
+                  <div className="p-3 bg-slate-950/80 rounded-2xl border border-slate-800">
+                    <span className="block text-[10px] uppercase font-bold text-slate-500">Pace</span>
+                    <span className="text-base font-black text-purple-400">10s / Word</span>
+                  </div>
+                  <div className="p-3 bg-slate-950/80 rounded-2xl border border-slate-800">
+                    <span className="block text-[10px] uppercase font-bold text-slate-500">Duration</span>
+                    <span className="text-base font-black text-white">13m 20s</span>
+                  </div>
+                  <div className="p-3 bg-slate-950/80 rounded-2xl border border-slate-800">
+                    <span className="block text-[10px] uppercase font-bold text-slate-500">Supported</span>
+                    <span className="text-base font-black text-emerald-400">Type / Paper</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={onStartWat}
+                  className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2.5 text-base cursor-pointer shadow-lg shadow-purple-950/50 group-hover:scale-[1.01]"
+                >
+                  <Play className="w-5 h-5 fill-current" />
+                  <span>Start WAT</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Psychological Test Guidelines Card */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-left flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-white font-black text-sm">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  <span>ISSB WAT Principles</span>
+                </div>
+                <div className="space-y-2.5 text-xs text-slate-300">
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/80">
+                    <strong className="text-emerald-400 block mb-0.5">Spontaneity</strong>
+                    Never pause to construct elaborate literary lines. The first instinctive thought reflects your genuine subconscious.
+                  </div>
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/80">
+                    <strong className="text-purple-400 block mb-0.5">Constructive & Positive</strong>
+                    Frame negative stimulus words constructively (e.g. for "Failure": "Failure teaches resilience").
+                  </div>
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/80">
+                    <strong className="text-amber-400 block mb-0.5">Avoid Preaching</strong>
+                    Avoid moralizing slogans ("We should always..."). Make practical, active, meaningful statements.
+                  </div>
+                </div>
+              </div>
+
+              {watHistory.length > 0 && (
+                <div className="pt-2 border-t border-slate-800/80">
+                  <button
+                    onClick={() => {
+                      setHistoryFilter('wat');
+                      setActiveTab('history');
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-bold transition-colors flex items-center justify-between cursor-pointer"
+                  >
+                    <span>View {watHistory.length} Previous WAT {watHistory.length === 1 ? 'Session' : 'Sessions'}</span>
+                    <HistoryIcon className="w-3.5 h-3.5 text-slate-400" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TAB 3: ALL PRACTICE MODES & SPRINTS */}
       {activeTab === 'modes' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Card 1: 100 IQ ISSB Full Simulation */}
           <div className="bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-6 flex flex-col justify-between space-y-6 shadow-xl relative overflow-hidden group hover:border-emerald-500 transition-colors">
             <div className="space-y-4 text-left">
@@ -492,13 +614,35 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
                 The ISSB-style Verbal Set 1. 100 questions with strict 30-minute auto-submit.
               </p>
             </div>
-
             <button
               onClick={() => onStartExam('verbal-set-1')}
               className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm cursor-pointer shadow-md shadow-emerald-950/40"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>Launch Verbal Set 1</span>
+            </button>
+          </div>
+
+          {/* Card 2: WAT (80 words • 10 sec each) */}
+          <div className="bg-slate-900 border-2 border-purple-500/40 rounded-3xl p-6 flex flex-col justify-between space-y-6 shadow-xl relative overflow-hidden group hover:border-purple-500 transition-colors">
+            <div className="space-y-4 text-left">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                <PenTool className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white">WAT (80 words)</h3>
+                <span className="text-xs font-bold text-purple-400">80 Words • 10s • Type / Paper</span>
+              </div>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                Word Association Test simulation. 80 random words, 10s per word. Train rapid positive association under ISSB time pressure.
+              </p>
+            </div>
+            <button
+              onClick={onStartWat}
+              className="w-full bg-purple-600 hover:bg-purple-500 text-white font-black py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm cursor-pointer shadow-md shadow-purple-950/40"
+            >
+              <Play className="w-4 h-4 fill-current" />
+              <span>Start WAT</span>
             </button>
           </div>
 
@@ -589,10 +733,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-left space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-slate-800">
             <div>
-              <h3 className="text-base font-black text-white">Cadet Examination Log</h3>
+              <h3 className="text-base font-black text-white">Candidate Examination Log</h3>
               <p className="text-xs text-slate-400">All completed ISSB screening evaluations and performance records.</p>
             </div>
-
             {history.length > 0 && (
               <button
                 onClick={onClearHistory}
@@ -604,56 +747,163 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             )}
           </div>
 
-          {history.length === 0 ? (
+          {/* History Sub-tabs Filter */}
+          <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+            <button
+              onClick={() => setHistoryFilter('all')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                historyFilter === 'all'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+              }`}
+            >
+              All Records ({history.length + watHistory.length})
+            </button>
+            <button
+              onClick={() => setHistoryFilter('iq')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                historyFilter === 'iq'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+              }`}
+            >
+              IQ Tests ({history.length})
+            </button>
+            <button
+              onClick={() => setHistoryFilter('wat')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                historyFilter === 'wat'
+                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+              }`}
+            >
+              WAT Sessions ({watHistory.length})
+            </button>
+          </div>
+
+          {((historyFilter === 'all' && history.length === 0 && watHistory.length === 0) ||
+            (historyFilter === 'iq' && history.length === 0) ||
+            (historyFilter === 'wat' && watHistory.length === 0)) ? (
             <div className="py-12 text-center space-y-3">
               <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-500">
                 <Clock className="w-6 h-6" />
               </div>
               <p className="text-sm font-bold text-slate-300">No examination records logged yet.</p>
-              <p className="text-xs text-slate-500">Complete your first 100 IQ or 50-Question Non-Verbal test to see detailed ratings and accuracy metrics here.</p>
+              <p className="text-xs text-slate-500">
+                {historyFilter === 'wat'
+                  ? 'Complete your first 80-Word Association Test to see responses and practice records here.'
+                  : 'Complete your first 100 IQ or 50-Question Non-Verbal test to see detailed ratings and accuracy metrics here.'}
+              </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {history.map((record) => (
-                <div
-                  key={record.id}
-                  className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
-                        record.issbStatus === 'Outstanding'
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                          : record.issbStatus === 'Recommended'
-                          ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
-                          : record.issbStatus === 'Marginal / Borderline'
-                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                          : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                      }`}>
-                        {record.issbStatus}
-                      </span>
-                      <span className="text-xs text-slate-400 font-bold">
-                        {record.mode === 'verbal-set-1' ? 'Verbal Set 1' : (record.mode === 'non-verbal-50' || record.mode === 'non-verbal-38') ? 'Non-Verbal IQ (50 Q)' : record.mode}
-                      </span>
-                      <span className="text-xs text-slate-500">• {new Date(record.date).toLocaleDateString()}</span>
+            <div className="space-y-4">
+              {/* WAT Attempts Section */}
+              {(historyFilter === 'all' || historyFilter === 'wat') && watHistory.length > 0 && (
+                <div className="space-y-3">
+                  {historyFilter === 'all' && (
+                    <div className="text-xs font-bold text-purple-400 uppercase tracking-wider pt-2">
+                      WAT Sessions ({watHistory.length})
                     </div>
-                    <div className="text-xs text-slate-400">
-                      Score: <strong className="text-white">{record.obtainedMarks || record.score}</strong> / {record.totalQuestions} • Correct: <strong className="text-emerald-400">{record.correctAnswers}</strong> • Wrong: <strong className="text-rose-400">{record.wrongAnswers}</strong>
+                  )}
+                  {watHistory.map((watRecord) => (
+                    <div
+                      key={watRecord.id}
+                      className="p-4 bg-slate-950 rounded-2xl border border-purple-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-purple-500/60 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                            watRecord.completed
+                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                              : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                          }`}>
+                            {watRecord.completed ? 'Completed' : 'Incomplete'}
+                          </span>
+                          <span className="text-xs text-purple-300 font-bold">
+                            WAT • {watRecord.mode === 'type' ? 'Type Mode' : 'Paper Mode'}
+                          </span>
+                          <span className="text-xs text-slate-500">• {new Date(watRecord.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          {watRecord.mode === 'type' ? (
+                            <>
+                              Answered: <strong className="text-white">{watRecord.answeredCount}</strong> / {watRecord.totalWords} • Skipped: <strong className="text-slate-500">{watRecord.skippedCount}</strong>
+                            </>
+                          ) : (
+                            <>
+                              Practiced with physical paper: <strong className="text-white">{watRecord.totalWords}</strong> words shown
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between sm:justify-end gap-4">
+                        <div className="text-right text-xs font-bold text-slate-400">
+                          <span className="block text-[10px] text-slate-500 uppercase">Duration</span>
+                          <span className="text-white">{Math.floor(watRecord.timeTakenSeconds / 60)}m {watRecord.timeTakenSeconds % 60}s</span>
+                        </div>
+                        {onViewWatReview && (
+                          <button
+                            onClick={() => onViewWatReview(watRecord)}
+                            className="px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-300 text-xs font-bold transition-colors cursor-pointer"
+                          >
+                            Review
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="text-right sm:text-right flex items-center justify-between sm:justify-end gap-4 text-xs font-bold text-slate-400">
-                    <div>
-                      <span className="block text-[10px] text-slate-500 uppercase">Speed</span>
-                      <span className="text-white">{record.speedPerQuestion}s / item</span>
-                    </div>
-                    <div>
-                      <span className="block text-[10px] text-slate-500 uppercase">Duration</span>
-                      <span className="text-white">{Math.floor(record.timeTakenSeconds / 60)}m {record.timeTakenSeconds % 60}s</span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
+
+              {/* IQ Tests Section */}
+              {(historyFilter === 'all' || historyFilter === 'iq') && history.length > 0 && (
+                <div className="space-y-3">
+                  {historyFilter === 'all' && (
+                    <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider pt-2">
+                      IQ Tests ({history.length})
+                    </div>
+                  )}
+                  {history.map((record) => (
+                    <div
+                      key={record.id}
+                      className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                            record.issbStatus === 'Outstanding'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : record.issbStatus === 'Recommended'
+                              ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                              : record.issbStatus === 'Marginal / Borderline'
+                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                              : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                          }`}>
+                            {record.issbStatus}
+                          </span>
+                          <span className="text-xs text-slate-400 font-bold">
+                            {record.mode === 'verbal-set-1' ? 'Verbal Set 1' : (record.mode === 'non-verbal-50' || record.mode === 'non-verbal-38') ? 'Non-Verbal IQ (50 Q)' : record.mode}
+                          </span>
+                          <span className="text-xs text-slate-500">• {new Date(record.date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          Score: <strong className="text-white">{record.obtainedMarks || record.score}</strong> / {record.totalQuestions} • Correct: <strong className="text-emerald-400">{record.correctAnswers}</strong> • Wrong: <strong className="text-rose-400">{record.wrongAnswers}</strong>
+                        </div>
+                      </div>
+                      <div className="text-right sm:text-right flex items-center justify-between sm:justify-end gap-4 text-xs font-bold text-slate-400">
+                        <div>
+                          <span className="block text-[10px] text-slate-500 uppercase">Speed</span>
+                          <span className="text-white">{record.speedPerQuestion}s / item</span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] text-slate-500 uppercase">Duration</span>
+                          <span className="text-white">{Math.floor(record.timeTakenSeconds / 60)}m {record.timeTakenSeconds % 60}s</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

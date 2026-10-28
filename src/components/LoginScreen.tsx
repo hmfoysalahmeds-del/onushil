@@ -79,7 +79,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-black uppercase tracking-wider mb-2">
             <Target className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Cadet Portal</span>
+            <span>Candidate Portal</span>
           </div>
 
           <h2 className="text-2xl font-black text-white tracking-tight">b20ISSB Candidate Access</h2>

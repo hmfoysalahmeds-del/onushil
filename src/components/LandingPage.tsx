@@ -101,7 +101,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 onClick={onStartPracticing}
                 className="bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black px-8 py-5 rounded-2xl shadow-xl shadow-emerald-950/70 transition-all flex items-center justify-center gap-3 text-lg cursor-pointer"
               >
-                <span>{username ? 'Launch Cadet Portal' : 'Start 100 IQ Practice'}</span>
+                <span>{username ? 'Launch Candidate Portal' : 'Start 100 IQ Practice'}</span>
                 <ArrowRight className="w-5 h-5 text-slate-950" />
               </motion.button>
               
@@ -223,7 +223,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section id="features" className="scroll-mt-24 space-y-12">
         <div className="text-center space-y-4 max-w-2xl mx-auto">
           <span className="text-emerald-400 font-extrabold text-xs uppercase tracking-widest bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30">
-            Cadet Preparation Architecture
+            Candidate Preparation Architecture
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
             Why b20ISSB Is Essential for Screening

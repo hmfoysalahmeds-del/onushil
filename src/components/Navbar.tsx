@@ -1,13 +1,17 @@
 import React from 'react';
-import { LogOut, LayoutDashboard, Shield, Zap, Compass, Trophy, Settings } from 'lucide-react';
+import { LogOut, LayoutDashboard, Shield, Zap, Compass, Trophy, Settings, ShieldAlert } from 'lucide-react';
 import { UserProfile } from '../types';
+
+export type ScreenType = 'landing' | 'login' | 'dashboard' | 'quiz' | 'results' | 'leaderboard' | 'wat-instructions' | 'wat-test' | 'wat-review';
 
 interface NavbarProps {
   userProfile: UserProfile | null;
-  currentScreen: 'landing' | 'login' | 'dashboard' | 'quiz' | 'results' | 'leaderboard';
+  currentScreen: ScreenType;
   onLogout: () => void;
-  onNavigate: (screen: 'landing' | 'login' | 'dashboard' | 'quiz' | 'results' | 'leaderboard') => void;
+  onNavigate: (screen: ScreenType) => void;
   onOpenSettings?: () => void;
+  isAdmin?: boolean;
+  onOpenWatAdmin?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ 
@@ -15,7 +19,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentScreen, 
   onLogout, 
   onNavigate,
-  onOpenSettings
+  onOpenSettings,
+  isAdmin = false,
+  onOpenWatAdmin,
 }) => {
   return (
     <nav className="bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-800 shadow-xl sticky top-0 z-50">
@@ -65,8 +71,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Leaderboard</span>
           </button>
 
+          {/* Admin WAT Word Bank Quick Link */}
+          {isAdmin && onOpenWatAdmin && (
+            <button
+              onClick={onOpenWatAdmin}
+              className="bg-purple-950/80 hover:bg-purple-900 text-purple-200 border border-purple-500/40 font-bold px-2.5 sm:px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer text-xs sm:text-sm flex items-center gap-1.5 shadow-sm"
+              title="Manage WAT Word Bank"
+            >
+              <ShieldAlert className="w-4 h-4 text-purple-400" />
+              <span className="hidden md:inline">Admin Bank</span>
+            </button>
+          )}
+
           {/* Candidate Dashboard Link */}
-          {userProfile && currentScreen !== 'dashboard' && currentScreen !== 'quiz' && (
+          {userProfile && currentScreen !== 'dashboard' && currentScreen !== 'quiz' && currentScreen !== 'wat-test' && (
             <button
               onClick={() => onNavigate('dashboard')}
               className="bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer text-xs sm:text-sm flex items-center gap-1.5 border border-slate-700 hover:border-emerald-500/50"

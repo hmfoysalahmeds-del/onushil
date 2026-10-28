@@ -83,7 +83,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
       title: 'Outstanding',
       color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
       headerBg: 'from-emerald-950 via-slate-900 to-slate-900',
-      description: 'Exceptional intellectual reflex! You possess the quick decision-making and pattern recognition of top cadet material.'
+      description: 'Exceptional intellectual reflex! You possess the quick decision-making and pattern recognition of top candidate material.'
     };
   } else if (percentage >= 60) {
     gradeBadge = {
