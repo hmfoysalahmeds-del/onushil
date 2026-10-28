@@ -94,15 +94,24 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 }
 
 /**
- * Sign in using Google popup
+ * Sign in using Google popup, with automatic fallback to redirect if popup is blocked
  */
-export async function signInWithGoogle(): Promise<FirebaseUser> {
-  const result = await signInWithPopup(auth, googleProvider);
-  return result.user;
+export async function signInWithGoogle(): Promise<FirebaseUser | null> {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (error: any) {
+    if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
+      console.warn('Popup was blocked by browser. Automatically switching to page redirect...');
+      await signInWithRedirect(auth, googleProvider);
+      return null;
+    }
+    throw error;
+  }
 }
 
 /**
- * Sign in using Google Redirect (useful if browser blocks popups on custom domains)
+ * Sign in directly using Google Redirect (bypasses popups completely)
  */
 export async function signInWithGoogleRedirect(): Promise<void> {
   await signInWithRedirect(auth, googleProvider);

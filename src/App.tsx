@@ -22,7 +22,8 @@ import {
   saveExamResultToFirestore,
   fetchLeaderboardEntries,
   fetchUserWatHistory,
-  saveWatAttempt
+  saveWatAttempt,
+  checkRedirectResult
 } from './lib/firebase';
 
 export default function App() {
@@ -88,8 +89,33 @@ export default function App() {
     }
   };
 
-  // Firebase Auth persistence listener
+  // Firebase Auth persistence & redirect result listener
   useEffect(() => {
+    // 1. Process redirect sign-in result if returning from a page redirect
+    checkRedirectResult()
+      .then(async (user) => {
+        if (user) {
+          try {
+            const profile = await syncUserProfile(user);
+            setUserProfile(profile);
+            const [cloudHistory, userWatHistory] = await Promise.all([
+              fetchUserHistory(user.uid),
+              fetchUserWatHistory(user.uid)
+            ]);
+            setHistory(cloudHistory);
+            setWatHistory(userWatHistory);
+            await calculateBestRank(user.uid);
+            setScreen('dashboard');
+          } catch (e) {
+            console.error('Error handling redirect user sync:', e);
+          }
+        }
+      })
+      .catch((err) => {
+        console.error('Redirect sign-in error:', err);
+      });
+
+    // 2. Auth state change listener
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
